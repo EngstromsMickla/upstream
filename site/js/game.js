@@ -9,8 +9,47 @@ resize();window.addEventListener('resize',resize);
 const L=4000,FH=36,FALLS=[1150,2150,3150],ISL=[800,1700,2650];
 const clamp=(v,a,b)=>v<a?a:v>b?b:v,lerp=(a,b,t)=>a+(b-a)*t;
 const mix=(a,b,t)=>[lerp(a[0],b[0],t),lerp(a[1],b[1],t),lerp(a[2],b[2],t)],rgb=a=>'rgb('+(a[0]|0)+','+(a[1]|0)+','+(a[2]|0)+')';
-const cx=y=>210+55*Math.sin(y/420)+28*Math.sin(y/170+1);
-const hw=y=>Math.max(0,(118+28*Math.sin(y/260+2))*Math.min(1,(L+40-y)/320+0.2)*(y<0?1-y/50:1));
+const cxR=y=>210+55*Math.sin(y/420)+28*Math.sin(y/170+1);
+const hwR=y=>Math.max(0,(118+28*Math.sin(y/260+2))*Math.min(1,(L+40-y)/320+0.2)*(y<0?1-y/50:1));
+const cx=y=>y<=L?cxR(y):cxR(L);
+const hw=y=>{const r=hwR(y);if(y<L-30)return r;const dy=y-LY;return Math.max(r,Math.abs(dy)<LR?Math.sqrt(LR*LR-dy*dy):0)};
+const LY=L+300,LR=320,X0=cxR(L);
+let lake=false,LK=null,LS={h:0,r:0,s:0,k:0},toastQ=[];
+const KIDS=['Iiih!','Mamma, en fisk!','Den nuddade mig!','Pappa! Fisken!','Den är jättestor!','Den har tittat på mig!'];
+function buildLake(){const o={hurdles:[],rings:[],buoys:[],kids:[],cabin:{x:X0+262,y:LY+250}};
+for(let i=0;i<4;i++)o.hurdles.push({x:X0-40,y:LY-190+i*85,a:0,cd:0,passed:0});
+for(let i=0;i<3;i++)o.rings.push({x:X0+95+(i%2)*25,y:LY-160+i*105,z:16,flash:0});
+for(let i=0;i<6;i++)o.buoys.push({x:X0-175,y:LY-200+i*72,side:i%2?1:-1,lit:0});
+for(let i=0;i<4;i++)o.kids.push({x:X0+170+Math.random()*80,y:LY-120+i*80,hx:X0+170+Math.random()*80,hy:LY-120+i*80,vx:0,vy:0,t:Math.random()*6,scared:0,say:'',col:['#e85d75','#f2c230','#5aa9e6','#7cc576'][i],hair:['#4a2f1f','#e8c46a','#2b2b2b','#a0522d'][i]});
+return o}
+function inLake(y){return y>L-15}
+function enterLake(){lake=true;LK=buildLake();endT=T;changed=true;S.chime();if(rec.length>4){ghost=rec.slice();ghostBest=1e9}toast('Källsjön! Här kostar inget ork. Lek fritt.');toastQ=['Nedströms flyttade sig några stenar. Nästa tur blir lättare.','Prova hindren, ringarna och slalombanan. Badgästerna är skygga.']}
+function lakeUpdate(dt,py){if(!LK)return;
+if(toastT<=0&&toastQ.length)toast(toastQ.shift());
+for(const h of LK.hurdles){h.cd-=dt}
+for(const r of LK.rings){r.flash-=dt;if(f.air>0&&((py<r.y&&f.y>=r.y)||(py>r.y&&f.y<=r.y))&&Math.abs(f.x-r.x)<11&&f.z>5&&f.z<28){r.flash=1.2;LS.r++;S.ding();toast(pick(['Genom ringen!','Snyggt!','Som en delfin.']))}}
+for(let i=0;i<LK.buoys.length;i++){const b=LK.buoys[i];if(!b.lit&&((py<b.y&&f.y>=b.y)||(py>b.y&&f.y<=b.y))&&Math.sign(f.x-b.x)===b.side&&Math.abs(f.x-b.x)<70){b.lit=1;S.tick();const n=LK.buoys.filter(q=>q.lit).length;LS.s=Math.max(LS.s,n);if(n===LK.buoys.length){S.chime();toast('Slalombanan klar!');setTimeout(()=>LK&&LK.buoys.forEach(q=>q.lit=0),2500)}}}
+for(const k of LK.kids){k.t+=dt;if(k.scared>0){k.scared-=dt;k.x+=k.vx*dt;k.y+=k.vy*dt;k.vx*=Math.exp(-1.2*dt);k.vy*=Math.exp(-1.2*dt)}else{k.x+=(k.hx-k.x)*0.3*dt+Math.sin(k.t*0.7)*4*dt;k.y+=(k.hy-k.y)*0.3*dt+Math.cos(k.t*0.5)*4*dt;if(Math.random()<0.002){k.hx=X0+120+Math.random()*160;k.hy=LY-150+Math.random()*300}}
+const c0=cx(k.y),h=hw(k.y);k.x=clamp(k.x,c0-h+14,c0+h-14);k.y=clamp(k.y,L+20,LY+LR-30);
+const d=Math.hypot(f.x-k.x,f.y-k.y);if(d<26&&f.air<=0&&k.scared<=0.5){const dx=(k.x-f.x)/(d||1),dy=(k.y-f.y)/(d||1);k.vx=dx*90;k.vy=dy*90;k.scared=2.2;k.say=pick(KIDS);LS.k++;S.scream();if(d<14){f.x=k.x-dx*14;f.y=k.y-dy*14}}}}
+function lakeAir(){if(!LK)return;for(const h of LK.hurdles){if(h.cd>0||h.passed)continue;const q=capQ(h,22,f.x,f.y);if(Math.hypot(q[0]-f.x,q[1]-f.y)<12)h.passed=1}}
+function lakeLand(){if(!LK)return;let n=0;for(const h of LK.hurdles)if(h.passed){h.passed=0;h.cd=1.2;n++}if(n){LS.h+=n;S.ding();toast(n>1?'Över '+n+' hinder!':pick(['Över hindret!','Hopp!','Felfritt.']))}}
+function lakeCollide(){if(!LK)return;for(const h of LK.hurdles){const q=capQ(h,22,f.x,f.y),dx=f.x-q[0],dy=f.y-q[1],d=Math.hypot(dx,dy),mn=11;if(d<mn&&d>0.01){f.x=q[0]+dx/d*mn;f.y=q[1]+dy/d*mn}}for(const b of LK.buoys){const dx=f.x-b.x,dy=f.y-b.y,d=Math.hypot(dx,dy);if(d<10&&d>0.01){f.x=b.x+dx/d*10;f.y=b.y+dy/d*10}}}
+function lkSprites(add){if(!LK)return;
+const c=LK.cabin,pc=P(c.x,c.y,0);if(pc&&pc[3]<1300)add({d:pc[3],fn:()=>{const[X,Y,k]=pc;g.globalAlpha=fogA(pc[3]);const j1=P(c.x-10,c.y-8,1),j2=P(c.x-70,c.y-60,1),j3=P(c.x-62,c.y-68,1),j4=P(c.x-2,c.y-16,1);if(j1&&j2&&j3&&j4){poly([[j1[0],j1[1]],[j2[0],j2[1]],[j3[0],j3[1]],[j4[0],j4[1]]]);g.fillStyle=bim?'#efe1c4':'#8a6a48';g.fill();ol(1)}
+const w=46*k,h=26*k;g.fillStyle=bim?'#f3d6d2':'#9b2c22';g.fillRect(X-w/2,Y-h,w,h);if(bim){g.strokeStyle='#222';g.lineWidth=1;g.strokeRect(X-w/2,Y-h,w,h)}g.fillStyle=bim?'#e9e9e9':'#3a2f2a';poly([[X-w/2-3*k,Y-h],[X,Y-h-16*k],[X+w/2+3*k,Y-h]]);g.fill();ol(1);g.fillStyle='#f4f1e8';g.fillRect(X-w/2,Y-h,2*k,h);g.fillRect(X+w/2-2*k,Y-h,2*k,h);g.fillRect(X-15*k,Y-h*0.7,9*k,8*k);g.fillRect(X+6*k,Y-h*0.7,9*k,8*k);g.fillStyle=bim?'#cccccc':'#5a3a2a';g.fillRect(X-3*k,Y-h*0.55,6*k,h*0.55);g.globalAlpha=1}});
+for(const h of LK.hurdles){const p=P(h.x,h.y,0);if(!p||p[3]>1100)continue;add({d:p[3],fn:()=>{const[X,Y,k]=p;g.globalAlpha=fogA(p[3]);g.save();g.translate(X,Y);g.scale(k,k*0.55);g.beginPath();if(g.roundRect)g.roundRect(-22,-4.5,44,9,4.5);else g.rect(-22,-4.5,44,9);g.fillStyle=bim?'#d8bf98':(h.cd>0?'#c9a874':'#7a5b3c');g.fill();g.strokeStyle=bim?'#222':'#4b3624';g.lineWidth=1/k;g.stroke();for(const sx of[-24,24]){g.beginPath();g.arc(sx,0,3.5,0,7);g.fillStyle=bim?'#ffffff':'#e8463a';g.fill();g.stroke()}g.restore();g.globalAlpha=1}})}
+for(const r of LK.rings){const p=P(r.x,r.y,r.z),p0=P(r.x,r.y,0);if(!p||!p0||p[3]>1100)continue;add({d:p[3],fn:()=>{const[X,Y,k]=p;g.globalAlpha=fogA(p[3]);g.strokeStyle=bim?'#222':'#ffffff';g.lineWidth=Math.max(1,0.8*k);g.beginPath();g.moveTo(p0[0],p0[1]);g.lineTo(X,Y+11*k);g.stroke();g.fillStyle=bim?'#f6d0a8':'#f08a24';g.beginPath();g.ellipse(p0[0],p0[1],4*k,1.8*k,0,0,7);g.fill();ol(1);
+g.lineWidth=Math.max(1.5,2.6*k);for(let i=0;i<8;i++){g.strokeStyle=r.flash>0?(i%2?'#ffe27a':'#ffffff'):(bim?(i%2?'#bfbfbf':'#ffffff'):(i%2?'#f08a24':'#ffffff'));g.beginPath();g.arc(X,Y,11*k,i*Math.PI/4,(i+1)*Math.PI/4);g.stroke()}if(bim){g.strokeStyle='#222';g.lineWidth=1;g.beginPath();g.arc(X,Y,12.5*k,0,7);g.stroke()}g.globalAlpha=1}})}
+for(const b of LK.buoys){const p=P(b.x,b.y,0);if(!p||p[3]>1100)continue;add({d:p[3],fn:()=>{const[X,Y,k]=p;g.globalAlpha=fogA(p[3]);poly([[X,Y-12*k],[X-4*k,Y],[X+4*k,Y]]);g.fillStyle=bim?'#f3d6d2':'#e8463a';g.fill();ol(1);g.fillStyle='#ffffff';poly([[X-1.6*k,Y-7*k],[X+1.6*k,Y-7*k],[X+2.6*k,Y-4.5*k],[X-2.6*k,Y-4.5*k]]);g.fill();if(b.lit){g.fillStyle=bim?'#1f7ad6':'#7cf0a0';g.beginPath();g.arc(X,Y-13*k,2.4*k,0,7);g.fill()}g.globalAlpha=1}})}
+for(const kd of LK.kids){const p=P(kd.x,kd.y,0);if(!p||p[3]>1100)continue;add({d:p[3],fn:()=>{const[X,Y,k]=p;g.globalAlpha=fogA(p[3]);const bob=Math.sin(kd.t*3)*0.8*k;
+if(kd.scared>0&&!bim){g.fillStyle='rgba(255,255,255,0.7)';for(let i=0;i<5;i++){const a=kd.t*8+i*1.3;g.beginPath();g.arc(X+Math.cos(a)*9*k,Y-2*k+Math.sin(a*1.3)*2*k,1.3*k,0,7);g.fill()}}
+g.lineWidth=Math.max(1,3*k);for(let i=0;i<6;i++){g.strokeStyle=bim?(i%2?'#dddddd':'#ffffff'):(i%2?'#ffffff':kd.col);g.beginPath();g.ellipse(X,Y+bob,7*k,3*k,0,i*Math.PI/3,(i+1)*Math.PI/3);g.stroke()}if(bim){g.strokeStyle='#222';g.lineWidth=1;g.beginPath();g.ellipse(X,Y+bob,8.5*k,4*k,0,0,7);g.stroke()}
+const sw=Math.sin(kd.t*(kd.scared>0?14:4))*3*k;g.strokeStyle=bim?'#222':'#e8c6a3';g.lineWidth=Math.max(1,1.4*k);g.beginPath();g.moveTo(X-3*k,Y-3*k+bob);g.lineTo(X-8*k,Y-6*k+sw+bob);g.moveTo(X+3*k,Y-3*k+bob);g.lineTo(X+8*k,Y-6*k-sw+bob);g.stroke();
+g.beginPath();g.arc(X,Y-6*k+bob,3.3*k,0,7);g.fillStyle=bim?'#f4f4f4':'#e8c6a3';g.fill();ol(1);g.beginPath();g.arc(X,Y-7*k+bob,3.4*k,Math.PI,0);g.fillStyle=bim?'#e0e0e0':kd.hair;g.fill();if(kd.scared>0){g.fillStyle='#222';g.beginPath();g.arc(X,Y-4.6*k+bob,0.9*k,0,7);g.fill()}
+g.globalAlpha=1;if(kd.scared>0&&p[3]<500)bubble(kd.say,X,Y-10*k)}})}}
+function lakeLabs(labs){if(!LK)return;const near=(o,name,z)=>{const dz=o.y-camY;if(dz>30&&dz<520){const q=P(o.x,o.y,z||0);if(q)labs.push([q[0],q[1],name,q[3]])}};LK.hurdles.slice(0,2).forEach(h=>near(h,'HINDER, HOPPA, 0 ORK'));LK.rings.forEach(r=>near(r,'RING, HOPPA IGENOM',r.z));near(LK.buoys[0],'SLALOMBANA, 6 BOJAR');LK.kids.slice(0,2).forEach(k=>near(k,'BADGÄST, SKYGG',6));near(LK.cabin,'STUGA, EJ I TIDPLAN',20)}
+
 function rng(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 let changed=false,rocks=[];
 function buildRocks(){const r=rng(11),a=[];for(let y=420;y<L-180;y+=60+r()*70){const skip=FALLS.some(f=>y>f-140&&y<f+FH+40)||ISL.some(i=>Math.abs(y-i)<90);const n=r()<0.35?2:1;for(let i=0;i<n;i++){const w=hw(y)-24,x=cx(y)+(r()*2-1)*w,rr=10+r()*12,yy=y+r()*20;if(!skip)a.push({x,y:yy,r:rr});}}
@@ -18,9 +57,9 @@ ISL.forEach(y=>a.push({x:cx(y),y,r:42,isl:true}));
 if(changed){FALLS.forEach(f=>{a.push({x:cx(f-100),y:f-100,r:13,gift:true});a.push({x:cx(f-230)+18,y:f-230,r:12,gift:true});});for(let y=520;y<L-250;y+=330){if(!FALLS.some(f=>Math.abs(y-f)<280)&&!ISL.some(i=>Math.abs(y-i)<120))a.push({x:cx(y)-12,y,r:12,gift:true});}}
 a.sort((p,q)=>p.y-q.y);return a;}
 rocks=buildRocks();
-const TREES=[];{const r=rng(5);for(let y=-200;y<L+400;y+=22){for(const sd of[-1,1]){if(r()<0.72)TREES.push({side:sd,off:14+r()*120,y:y+r()*14,h:34+r()*46,type:r()<0.22?1:0,tone:r()})}}}
+const TREES=[];{const r=rng(5);for(let y=-200;y<L+800;y+=22){for(const sd of[-1,1]){if(r()<0.72)TREES.push({side:sd,off:14+r()*120,y:y+r()*14,h:34+r()*46,type:r()<0.22?1:0,tone:r()})}}}
 const W0={vy:0,m:1};
-function current(x,y){const h=Math.max(hw(y),1),dx=(x-cx(y))/h,c=(44+14*clamp(y,0,L)/L)*(changed?0.92:1),prof=0.55+0.45*Math.max(0,1-dx*dx);let m=1;
+function current(x,y){if(y>L-10){W0.vy=0;W0.m=1;return W0}const h=Math.max(hw(y),1),dx=(x-cx(y))/h,c=(44+14*clamp(y,0,L)/L)*(changed?0.92:1),prof=0.55+0.45*Math.max(0,1-dx*dx);let m=1;
 for(const k of rocks){if(k.y<y-50)continue;if(k.y>y+220)break;const dy=k.y-y,len=k.r*4.5;if(dy>-k.r&&dy<len){const t=Math.max(0,dy)/len,half=k.r*(1.05-0.75*t),ax=Math.abs(x-k.x);if(ax<half){const f=0.05+0.95*Math.pow(t,1.6),e=ax/half;m=Math.min(m,f+(1-f)*e*e*e);}}}
 let vy=-c*prof*m;if(m<0.3)vy+=14*(0.3-m)/0.3;
 for(const f of FALLS){if(y>=f&&y<=f+FH){vy=-330;break}if(y>f-75&&y<f){vy*=1.5;break}}
@@ -43,6 +82,7 @@ fail:()=>tone('triangle',440,110,0.45,0.1),
 wah:()=>{[392,370,349].forEach((f,i)=>tone('sawtooth',f,f*0.97,0.3,0.05,i*0.33));tone('sawtooth',330,290,1.0,0.05,0.99)},
 squeak:()=>{tone('sine',1300,1900,0.08,0.06);tone('sine',1500,2100,0.08,0.05,0.1)},moo:()=>{tone('sawtooth',110,80,0.9,0.05);tone('sine',220,160,0.9,0.03)},plink:()=>{tone('triangle',1200,1250,0.25,0.06);tone('triangle',1800,1850,0.3,0.04,0.08)},chat:()=>{for(let i=0;i<4;i++){const q=300+Math.random()*250;tone('square',q,q*1.1,0.06,0.012,i*0.08)}},
 tick:()=>{noise(0.05,0.08,3000,1500,'highpass')},knock:()=>{tone('sine',120,70,0.2,0.07);noise(0.06,0.06,500,200,'lowpass')},
+ding:()=>{tone('triangle',880,880,0.25,0.07);tone('triangle',1320,1320,0.35,0.06,0.1)},scream:()=>{tone('sine',900,1500,0.18,0.05);tone('sine',1000,1700,0.22,0.05,0.2)},
 chime:()=>{[523,659,784,1047,1319].forEach((f,i)=>tone('triangle',f,f*1.001,0.6,0.07,i*0.11))}};
 const BONK=['Aj.','Sten.','Den stod där förut också.','Bonk.'],BUMP=['Ursäkta!','Förlåt, jag ska bara förbi.','Ni simmar åt fel håll.'],OVER=['Över!','Hej då!','Hopp hopp.','Ursäkta, jag tar vägen ovanför.'];
 const DT=[{hl:8,rad:3,cost:3,sp:1.1,hit:['Kvist.','Pinne i fenan.','Knaster.'],name:'KVIST, −3 ORK'},{hl:17,rad:5,cost:8,sp:0.9,hit:['Stock! Aj.','Där kom en hel stock.','Dunk.'],name:'STOCK, −8 ORK'},{hl:14,rad:8,cost:16,sp:0.75,hit:['Båt!','Från båten: Se upp, fisken!','Någon tutade.'],name:'BÅT, −16 ORK, EJ I TIDPLAN'}];
@@ -68,14 +108,14 @@ for(let i=0;i<6;i++){const p=farPt(true);ST.push({x:p[0],y:p[1],ph:Math.random()
 function toast(t){toastTxt=t;toastT=2.2;toastTitle='Meddelande'}
 function hitToast(t,el){clashes++;if(bim){toastTxt='Element överlappar: Lax och '+el+'.';toastT=2.4;toastTitle='Varning'}else if(t)toast(t)}
 function pick(a){return a[Math.floor(Math.random()*a.length)]}
-function startRun(){rocks=buildRocks();resetFish();state='play';T=0;rec=[];recT=0;toastT=0;DB.length=0;spawnT=1.5;SU=[];surpT=4;clashes=0;if(changed&&!seen.gift){seen.gift=1;toast('Stenarna du flyttade vid källan ligger kvar.')}for(let i=0;i<PT.length;i++)PT[i]=farPt(true);}
+function startRun(){lake=false;LK=null;LS={h:0,r:0,s:0,k:0};toastQ=[];rocks=buildRocks();resetFish();state='play';T=0;rec=[];recT=0;toastT=0;DB.length=0;spawnT=1.5;SU=[];surpT=4;clashes=0;if(changed&&!seen.gift){seen.gift=1;toast('Stenarna du flyttade vid källan ligger kvar.')}for(let i=0;i<PT.length;i++)PT[i]=farPt(true);}
 function endRun(k){state=k;overT=0;endT=T;steerId=null;const reached=k==='won'?1e9:maxY;if(rec.length>4&&reached>=ghostBest){ghost=rec.slice();ghostBest=reached}if(k==='won'){changed=true;S.chime()}else S.wah()}
 function footOf(y){return FALLS.find(v=>y>v-75&&y<v+2)}
 function capQ(o,hl,x,y){const ex=Math.cos(o.a)*hl,ey=Math.sin(o.a)*hl,ux=x-(o.x-ex),uy=y-(o.y-ey),u=clamp((ux*ex*2+uy*ey*2)/(4*hl*hl),0,1);return[o.x-ex+2*ex*u,o.y-ey+2*ey*u]}
 function rockPush(o,hl,rad,dt){let hit=false;for(const r of rocks){if(r.y<o.y-80)continue;if(r.y>o.y+80)break;const q=hl>0?capQ(o,hl,r.x,r.y):[o.x,o.y],dx=q[0]-r.x,dy=q[1]-r.y,d=Math.hypot(dx,dy),mn=r.r+rad;if(d<mn){const nx=d>0.01?dx/d:1,ny=d>0.01?dy/d:0,p=mn-d;o.x+=nx*p;o.y+=ny*p;const side=Math.abs(nx)>0.05?Math.sign(nx):(o.x>=r.x?1:-1);o.vx=(o.vx||0)+side*80*dt;if(hl>0)o.va=(o.va||0)+((q[0]-o.x)*ny-(q[1]-o.y)*nx)*0.6*dt;hit=true}}return hit}
 function segQ(d,x,y){const t=DT[d.k],ex=Math.cos(d.a)*t.hl,ey=Math.sin(d.a)*t.hl,ux=x-(d.x-ex),uy=y-(d.y-ey),u=clamp((ux*ex*2+uy*ey*2)/(4*t.hl*t.hl),0,1);return[d.x-ex+2*ex*u,d.y-ey+2*ey*u]}
 function steerTarget(){const kx=(keys.ArrowRight||keys.d?1:0)-(keys.ArrowLeft||keys.a?1:0),ky=(keys.ArrowUp||keys.w?1:0)-(keys.ArrowDown||keys.s?1:0);if(kx||ky)return[f.x+kx*120,f.y+ky*120];if(steerId!==null)return inv(px,py);return null}
-function tryJump(){if(state!=='play'||f.air>0)return;const foot=footOf(f.y),cost=foot!==undefined?20:12;if(f.stam<cost){S.fail();toast('För lite ork för att hoppa. Vila i lä.');return}
+function tryJump(){if(state!=='play'||f.air>0)return;const foot=footOf(f.y),cost=(lake&&inLake(f.y))?0:(foot!==undefined?20:12);if(f.stam<cost){S.fail();toast('För lite ork för att hoppa. Vila i lä.');return}
 const tg=steerTarget();let ux=Math.cos(f.ang),uy=Math.sin(f.ang);if(tg){const dx=tg[0]-f.x,dy=tg[1]-f.y,d=Math.hypot(dx,dy);if(d>8){ux=dx/d;uy=dy/d}}
 f.ax0=f.x;f.ay0=f.y;f.overs=0;
 if(foot!==undefined&&uy>0.2){f.ax1=f.x+ux*20;f.ay1=foot+FH+45;f.airD=0.8;f.zmax=40;S.big();toast('Uppför forsen!')}
@@ -88,32 +128,34 @@ for(const st of ST){const w=current(st.x,st.y);st.y+=w.vy*dt*0.95;st.x+=Math.sin
 for(let i=bubbles.length-1;i>=0;i--){const b=bubbles[i];b.t+=dt;b.z=(b.z||0)+10*dt;b.x+=Math.sin(b.t*9)*8*dt;if(b.t>1)bubbles.splice(i,1)}
 for(let i=rings.length-1;i>=0;i--){rings[i].t+=dt*1.4;if(rings[i].t>1)rings.splice(i,1)}
 if(state!=='play')return;
-spawnT-=dt;if(spawnT<=0){spawnT=0.7+Math.random()*1.0;if(DB.length<18){const r=Math.random(),k=r<0.55?0:r<0.88?1:2,y=camY+600+Math.random()*350,h=hw(y);if(h>20)DB.push({k,x:cx(y)+(Math.random()*2-1)*h*0.9,y,a:Math.random()*Math.PI,va:(Math.random()-0.5)*(k===2?0.4:1.5),hit:0,passed:0})}}
+spawnT-=dt;if(spawnT<=0&&!(lake&&f.y>L-150)){spawnT=0.7+Math.random()*1.0;if(DB.length<18){const r=Math.random(),k=r<0.55?0:r<0.88?1:2,y=camY+600+Math.random()*350,h=hw(y);if(h>20)DB.push({k,x:cx(y)+(Math.random()*2-1)*h*0.9,y,a:Math.random()*Math.PI,va:(Math.random()-0.5)*(k===2?0.4:1.5),hit:0,passed:0})}}
 for(let i=DB.length-1;i>=0;i--){const d=DB[i],w=current(d.x,d.y);d.y+=w.vy*DT[d.k].sp*dt;d.x+=(d.vx||0)*dt;d.vx=(d.vx||0)*Math.exp(-0.8*dt);d.a+=d.va*dt;d.va=clamp(d.va,-2.5,2.5);d.hit-=dt;d.rt=(d.rt||0)-dt;if(rockPush(d,DT[d.k].hl,DT[d.k].rad,dt)&&d.rt<=0&&d.y-camY<350&&d.y>camY){d.rt=1.2;[S.tick,S.knock,S.knock][d.k]()}const c0=cx(d.y),h=hw(d.y);d.x=clamp(d.x,c0-h+10,c0+h-10);if(d.y-camY<-40||d.y<-200)DB.splice(i,1)}
-surpT-=dt;if(surpT<=0){surpT=7+Math.random()*7;let tp;do{tp=pick(SPT)}while(tp===lastSu);lastSu=tp;const y=camY+750+Math.random()*200,h=hw(y);if(h>30){const o={tp,y,x:cx(y)+(Math.random()*2-1)*h*0.6,a:tp==='canoe'?Math.PI/2+(Math.random()-0.5)*0.5:Math.random()*Math.PI,t:0,li:0,lt:0,said:0,hitT:0};if(tp==='moose'){o.dir=Math.random()<0.5?1:-1;o.x=cx(y)-o.dir*(h+8)}if(tp==='heron'){o.sd=Math.random()<0.5?1:-1;o.x=cx(y)+o.sd*(h+12)}SU.push(o)}}
+surpT-=dt;if(surpT<=0&&!(lake&&f.y>L-150)){surpT=7+Math.random()*7;let tp;do{tp=pick(SPT)}while(tp===lastSu);lastSu=tp;const y=camY+750+Math.random()*200,h=hw(y);if(h>30){const o={tp,y,x:cx(y)+(Math.random()*2-1)*h*0.6,a:tp==='canoe'?Math.PI/2+(Math.random()-0.5)*0.5:Math.random()*Math.PI,t:0,li:0,lt:0,said:0,hitT:0};if(tp==='moose'){o.dir=Math.random()<0.5?1:-1;o.x=cx(y)-o.dir*(h+8)}if(tp==='heron'){o.sd=Math.random()<0.5?1:-1;o.x=cx(y)+o.sd*(h+12)}SU.push(o)}}
 for(let i=SU.length-1;i>=0;i--){const o=SU[i];o.t+=dt;o.hitT-=dt;o.sayT=(o.sayT||0)-dt;const dz=o.y-camY;if(['canoe','duck','hat','bottle'].includes(o.tp)){const w=current(o.x,o.y);o.y+=w.vy*(o.tp==='canoe'?0.6:1)*dt;o.a+=Math.sin(o.t*0.7)*0.15*dt+(o.va||0)*dt;o.va=(o.va||0)*Math.exp(-1.5*dt);o.x+=(o.vx||0)*dt;o.vx=(o.vx||0)*Math.exp(-0.8*dt);o.rt=(o.rt||0)-dt;if(rockPush(o,o.tp==='canoe'?20:0,SUD[o.tp].r,dt)&&o.rt<=0&&o.y-camY<400&&o.y>camY){o.rt=1.5;if(o.tp==='canoe'){o.sayTxt=pick(['STEN! Du sa att det var fritt.','Det där var din sida.','Backa! Nej, andra backa.']);o.sayT=2.5;S.knock()}else if(o.tp==='duck')S.squeak();else S.tick()}const c0=cx(o.y),h=hw(o.y);o.x=clamp(o.x,c0-h+12,c0+h-12)}
 if(o.tp==='moose'){o.x+=o.dir*11*dt;if(Math.abs(o.x-cx(o.y))>hw(o.y)+30&&o.t>3){SU.splice(i,1);continue}}
 if(!o.said&&dz<420){o.said=1;if(o.tp==='moose')S.moo();if(o.tp==='heron')toast('En häger följer dig med blicken.');if(o.tp==='duck')toast('En badanka. Varifrån kom den?')}
 if(o.tp==='canoe'){o.lt+=dt;if(dz<520&&o.lt>2.3){o.lt=0;o.li++;if(dz<350)S.chat()}}
 if(dz<-50||o.y<-200)SU.splice(i,1)}
-const tg=steerTarget();let eff=0;
+const tg=steerTarget();let eff=0;const py0=f.y;
 if(f.air>0){f.air-=dt;const t=clamp(1-f.air/f.airD,0,1);f.at=t;f.z=Math.sin(Math.PI*t)*f.zmax;f.x=lerp(f.ax0,f.ax1,t);f.y=lerp(f.ay0,f.ay1,t);f.tail+=dt*22;
 for(const st of ST){if(!st.passed&&Math.hypot(st.x-f.x,st.y-f.y)<14){st.passed=1;f.overs++}}
 for(const r of rocks){if(!r.passed&&Math.hypot(r.x-f.x,r.y-f.y)<r.r+4){r.passed=1;f.overs++}}
 for(const o of SU){const sd=SUD[o.tp];if(sd.r<0||o.passed)continue;const q=o.tp==='canoe'?capQ(o,sd.hl,f.x,f.y):[o.x,o.y];if(Math.hypot(q[0]-f.x,q[1]-f.y)<sd.r+8){o.passed=1;f.overs++}}
+if(lake)lakeAir();
 for(const d of DB){if(!d.passed){const q=segQ(d,f.x,f.y);if(Math.hypot(q[0]-f.x,q[1]-f.y)<DT[d.k].rad+8){d.passed=1;f.overs++}}}
-if(f.air<=0){f.air=0;f.at=0;f.z=0;f.vx=0;f.vy=0;S.splash();rings.push({x:f.x,y:f.y,t:0});if(f.overs>0)toast(pick(OVER));ST.forEach(st=>st.passed=0);rocks.forEach(r=>r.passed=0);DB.forEach(d=>{if(d.passed)d.hit=0.6;d.passed=0});SU.forEach(o=>{if(o.passed)o.hitT=0.6;o.passed=0});const c0=cx(f.y),h=hw(f.y);f.x=clamp(f.x,c0-h+7,c0+h-7)}}
+if(f.air<=0){f.air=0;f.at=0;f.z=0;f.vx=0;f.vy=0;S.splash();if(lake)lakeLand();rings.push({x:f.x,y:f.y,t:0});if(f.overs>0)toast(pick(OVER));ST.forEach(st=>st.passed=0);rocks.forEach(r=>r.passed=0);DB.forEach(d=>{if(d.passed)d.hit=0.6;d.passed=0});SU.forEach(o=>{if(o.passed)o.hitT=0.6;o.passed=0});const c0=cx(f.y),h=hw(f.y);f.x=clamp(f.x,c0-h+7,c0+h-7)}}
 else{
 const w=current(f.x,f.y),lee=w.m<0.35;let ax=0,ay=0;
-if(tg){const dx=tg[0]-f.x,dy=tg[1]-f.y,d=Math.hypot(dx,dy);if(d>8){const ux=dx/d,uy=dy/d;let Fo=240;if(uy<0)Fo*=1+uy*0.75;const rel=Math.abs(f.x-cx(f.y))/Math.max(hw(f.y),1);if(rel>0.8)Fo*=0.55;if(f.stam<=0)Fo*=0.45;ax=ux*Fo;ay=uy*Fo;eff=Fo/240;}}
+if(tg){const dx=tg[0]-f.x,dy=tg[1]-f.y,d=Math.hypot(dx,dy);if(d>8){const ux=dx/d,uy=dy/d;let Fo=240;if(uy<0&&!inLake(f.y))Fo*=1+uy*0.75;const rel=Math.abs(f.x-cx(f.y))/Math.max(hw(f.y),1);if(rel>0.8)Fo*=0.55;if(f.stam<=0)Fo*=0.45;ax=ux*Fo;ay=uy*Fo;eff=Fo/240;}}
 const k=2.3,e=Math.exp(-k*dt);f.vx=f.vx*e+ax/k*(1-e);f.vy=w.vy+(f.vy-w.vy)*e+ay/k*(1-e);
 if(eff>0.05){f.stam-=7*eff*(lee?0.4:1)*dt;if(f.stam<=0&&!seen.tired){seen.tired=1;toast('Slut på ork. Släpp och glid, eller hitta lä.')}}else f.stam+=(lee?55:18)*dt;
-f.stam=clamp(f.stam,0,100);
+f.stam=clamp(f.stam,0,100);if(lake&&inLake(f.y))f.stam=100;
 if(lee&&!seen.lee&&T>1){seen.lee=1;toast('Lä bakom stenen. Här vilar man.')}
 if(lee&&eff<0.05&&f.stam<100){bubT-=dt;if(bubT<=0){bubT=0.25+Math.random()*0.3;S.bub();bubbles.push({x:f.x+6*Math.cos(f.ang),y:f.y+6*Math.sin(f.ang),t:0,z:0})}}
 f.x+=f.vx*dt;f.y+=f.vy*dt;
 const c0=cx(f.y),h=hw(f.y);if(f.x<c0-h+7){f.x=c0-h+7;f.vx=Math.abs(f.vx)*0.2}if(f.x>c0+h-7){f.x=c0+h-7;f.vx=-Math.abs(f.vx)*0.2}
 bonkT-=dt;for(const r of rocks){if(Math.abs(r.y-f.y)>r.r+10)continue;const dx=f.x-r.x,dy=f.y-r.y,d=Math.hypot(dx,dy),mn=r.r+7;if(d<mn&&d>0.01){const nx=dx/d,ny=dy/d;f.x=r.x+nx*mn;f.y=r.y+ny*mn;const vn=f.vx*nx+f.vy*ny;if(vn<0){f.vx-=1.5*vn*nx;f.vy-=1.5*vn*ny}if(bonkT<=0&&vn<-25){bonkT=0.35;S.bonk();f.stam=Math.max(0,f.stam-3);hitToast(Math.random()<0.5?pick(BONK):'',r.isl?'Ö':'Sten')}}}
+if(lake)lakeCollide();
 bumpT-=dt;for(const st of ST){const dx=f.x-st.x,dy=f.y-st.y,d=Math.hypot(dx,dy);if(d<13&&d>0.01){const nx=dx/d,ny=dy/d;f.x=st.x+nx*13;f.y=st.y+ny*13;f.vy=Math.min(f.vy,-60);if(bumpT<=0){bumpT=0.6;S.bump();hitToast(Math.random()<0.6?pick(BUMP):'','Fisk (stim)')}}}
 for(const d of DB){const t=DT[d.k];if(Math.abs(d.y-f.y)>t.hl+t.rad+10)continue;const q=segQ(d,f.x,f.y),dx=f.x-q[0],dy=f.y-q[1],dd=Math.hypot(dx,dy),mn=t.rad+6;if(dd<mn&&dd>0.01){f.x=q[0]+dx/dd*mn;f.y=q[1]+dy/dd*mn;if(d.hit<=0){d.hit=0.8;f.stam=Math.max(0,f.stam-t.cost);f.vy=Math.min(f.vy,-80-30*d.k);[S.snap,S.thunk,S.boat][d.k]();hitToast(d.k===2||Math.random()<0.6?pick(t.hit):'',['Kvist','Stock','Båt'][d.k])}}}
 for(let i=SU.length-1;i>=0;i--){const o=SU[i],sd=SUD[o.tp];if(sd.r<0)continue;const q=o.tp==='canoe'?capQ(o,sd.hl,f.x,f.y):[o.x,o.y],dx=f.x-q[0],dy=f.y-q[1],dd=Math.hypot(dx,dy),mn=sd.r+6;if(dd<mn&&dd>0.01){if(o.tp==='bottle'){S.plink();toast('Flaskpost: '+pick(BOTTLE));SU.splice(i,1);continue}f.x=q[0]+dx/dd*mn;f.y=q[1]+dy/dd*mn;if(o.hitT<=0){o.hitT=1;if(o.tp==='duck'){S.squeak();if(bim)hitToast('',sd.el);else toast('Pip.')}else if(o.tp==='canoe'){S.bump();if(bim)hitToast('',sd.el);else toast(pick(['Kanotisterna: Var kom den fisken ifrån?','Kanotisterna: Nu blev det ditt fel.']))}else if(o.tp==='hat'){S.bonk();if(bim)hitToast('',sd.el);else toast('Någons bygghjälm. Den borde vara på bygget.')}else if(o.tp==='moose'){S.moo();if(bim)hitToast('',sd.el);else toast('Älgen bryr sig inte.')}}}}
@@ -124,15 +166,16 @@ const da=tg&&eff>0?Math.atan2(ay,ax):Math.PI/2;let d=da-f.ang;d=Math.atan2(Math.
 lastEff=eff;
 footNow=f.air<=0&&footOf(f.y)!==undefined;
 if(footNow&&!seen.fall){seen.fall=1;toast('Forsen! Tryck Hoppa, eller mellanslag.')}
-if(!seen.jump&&T>4){seen.jump=1;toast('Hoppa över stenar, stockar och fiskar.')}
+if(!seen.jump&&T>4&&!lake){seen.jump=1;toast('Hoppa över stenar, stockar och fiskar.')}
 maxY=Math.max(maxY,f.y);camX+=(f.x-camX)*Math.min(1,dt*3);camY+=(f.y-BACK-camY)*Math.min(1,dt*5);
 recT+=dt;if(recT>=0.1){recT-=0.1;rec.push(f.x,f.y)}
-if(f.y>=L-22)endRun('won');else if(f.y<=10)endRun('mouth');
+if(lake)lakeUpdate(dt,py0);
+if(!lake&&f.y>=L-22)enterLake();else if(f.y<=10)endRun('mouth');
 }
 const SKY=[185,210,220],HAZE=[200,214,212];
 function poly(pts){g.beginPath();pts.forEach((p,i)=>i?g.lineTo(p[0],p[1]):g.moveTo(p[0],p[1]));g.closePath()}
 function fogA(dz){return clamp(1.25-dz/1100,0,1)}
-function tree(t){const y=t.y,x=cx(y)+t.side*(hw(y)+t.off),p=P(x,y,0);if(!p||p[3]<25||p[3]>1350)return null;return{d:p[3],fn:()=>{const[X,Y,k]=p,h=t.h*k,w=h*0.42;if(X<-w||X>W+w)return;g.globalAlpha=fogA(p[3]);
+function tree(t){const y=t.y,x=cx(y)+t.side*(hw(y)+t.off);if((y>L-200&&y<LY&&Math.abs(x-X0)<LR+20)||Math.hypot(x-X0,y-LY)<LR+15)return null;const p=P(x,y,0);if(!p||p[3]<25||p[3]>1350)return null;return{d:p[3],fn:()=>{const[X,Y,k]=p,h=t.h*k,w=h*0.42;if(X<-w||X>W+w)return;g.globalAlpha=fogA(p[3]);
 if(bim){g.lineWidth=0.8;g.strokeStyle='#2b3329';if(t.type===0){g.fillStyle='#d4e6c6';poly([[X,Y-h],[X-w*0.45,Y-h*0.15],[X+w*0.45,Y-h*0.15]]);g.fill();g.stroke()}else{g.fillStyle='#e2edd6';g.beginPath();g.ellipse(X,Y-h*0.68,w*0.4,h*0.3,0,0,7);g.fill();g.stroke()}g.beginPath();g.moveTo(X,Y-h*(t.type===0?0.15:0.38));g.lineTo(X,Y);g.stroke();g.globalAlpha=1;return}
 if(t.type===0){g.fillStyle='#4a3a2a';g.fillRect(X-w*0.05,Y-h*0.18,w*0.1,h*0.18);const c1=t.tone<0.5?'#2f4b3a':'#35503d',c2='#22392c';for(let i=0;i<3;i++){const top=Y-h*(1-i*0.22),bot=Y-h*(0.45-i*0.15),ww=w*(0.6+i*0.2);g.fillStyle=c1;g.beginPath();g.moveTo(X,top);g.lineTo(X-ww/2,bot);g.lineTo(X+ww/2,bot);g.closePath();g.fill();g.fillStyle=c2;g.beginPath();g.moveTo(X,top);g.lineTo(X,bot);g.lineTo(X+ww/2,bot);g.closePath();g.fill()}}
 else{g.fillStyle='#e6e2d6';g.fillRect(X-w*0.04,Y-h*0.6,w*0.08,h*0.6);g.fillStyle='#3a3a36';g.fillRect(X-w*0.04,Y-h*0.4,w*0.08,h*0.03);g.fillStyle='#6f9150';g.beginPath();g.ellipse(X,Y-h*0.72,w*0.42,h*0.3,0,0,7);g.fill();g.fillStyle='#5b7d42';g.beginPath();g.ellipse(X+w*0.12,Y-h*0.66,w*0.28,h*0.22,0,0,7);g.fill()}
@@ -200,7 +243,7 @@ g.fillStyle=rgb(mix((Math.floor(wy/22)&1)?[104,138,76]:[95,128,69],HAZE,fog));g.
 if(h>0.5){const xl=W/2+(c-h-camX)*k,xr=W/2+(c+h-camX)*k,bk=9*k;g.fillStyle=rgb(mix([158,148,122],HAZE,fog));g.fillRect(xl-bk,y0,xr-xl+2*bk,step);
 const tt=clamp(wy/L,0,1);let col=mix(mix([60,70,56],[32,78,88],tt),SKY,Math.pow(clamp(dz/1000,0,1),0.8)*0.75);if((Math.floor((wy+T*45)/7)&1))col=mix(col,[0,0,0],0.06);
 for(const fv of FALLS){if(wy>=fv&&wy<=fv+FH){col=[232,240,240];break}if(wy>fv-60&&wy<fv)col=mix(col,[235,242,242],0.45*(1-(fv-wy)/60))}
-if(wy>L-40)col=mix(col,[160,205,210],0.5);g.fillStyle=rgb(mix(col,HAZE,fog));g.fillRect(xl,y0,xr-xl,step)}}
+if(wy>L-40)col=mix(col,[70,140,155],0.4);g.fillStyle=rgb(mix(col,HAZE,fog));g.fillRect(xl,y0,xr-xl,step)}}
 if(bim){g.strokeStyle='rgba(0,0,0,0.08)';g.lineWidth=1;g.beginPath();for(let x=Math.floor((camX-1200)/60)*60;x<camX+1200;x+=60){const a=P(x,camY+15,0),b=P(x,camY+1300,0);if(a&&b){g.moveTo(a[0],a[1]);g.lineTo(b[0],b[1])}}g.stroke();g.strokeStyle='#2a2f36';g.beginPath();for(const sd of[-1,1]){let first=true;for(let wy=camY+12;wy<camY+1300;wy+=12){const h=hw(wy);if(h<0.5){first=true;continue}const q=P(cx(wy)+sd*h,wy,0);if(!q)continue;first?g.moveTo(q[0],q[1]):g.lineTo(q[0],q[1]);first=false}}g.stroke()}
 g.fillStyle='rgba(8,24,28,0.16)';for(const r of rocks){const dz=r.y-camY;if(bim||dz<-20||dz>900||r.isl)continue;g.beginPath();let ok=true;for(let i=0;i<14;i++){const a=i/14*Math.PI*2,q=P(r.x+Math.cos(a)*r.r*0.85,r.y-r.r*2.2+Math.sin(a)*r.r*2.3,0);if(!q){ok=false;break}i?g.lineTo(q[0],q[1]):g.moveTo(q[0],q[1])}if(ok)g.fill()}
 g.strokeStyle=bim?'#1f5f99':'#ffffff';g.lineWidth=1;for(const p of PT){const a=P(p[0],p[1],0),b=P(p[0],p[1]-p[2]*0.25,0);if(!a||!b)continue;g.globalAlpha=0.5*fogA(a[3]);g.beginPath();g.moveTo(a[0],a[1]);g.lineTo(b[0],b[1]);g.stroke()}g.globalAlpha=1;
@@ -208,7 +251,7 @@ for(const rg of rings){const q=P(rg.x,rg.y,0);if(!q)continue;g.strokeStyle=bim?'
 const sp=[];const add=o=>{if(o)sp.push(o)};
 for(const t of TREES){const dz=t.y-camY;if(dz>20&&dz<1400)add(tree(t))}
 for(const r of rocks){const dz=r.y-camY;if(dz>-10&&dz<1250)add(rockS(r))}
-for(const fv of FALLS)add(fallS(fv));add(srcS());
+for(const fv of FALLS)add(fallS(fv));lkSprites(add);
 for(const d of DB)add(debS(d));for(const o of SU)add(suS(o));
 for(const st of ST)add(fishS(st.x,st.y,0,-Math.PI/2,T*3+st.ph,'stim',0));
 if(ghostOn&&ghost&&state==='play'){const n=ghost.length/2,i=Math.min(n-1,Math.floor(T/0.1));add(fishS(ghost[i*2],ghost[i*2+1],0,Math.PI/2,T*12,'ghost',0))}
@@ -227,10 +270,11 @@ for(const fv of FALLS){const dz=fv-camY;if(dz>30&&dz<850){const q=P(cx(fv),fv,8)
 const rs=rocks.filter(r=>{const dz=r.y-camY;return dz>40&&dz<520}).sort((a,b)=>a.y-b.y).slice(0,3);for(const r of rs){const q=P(r.x,r.y,r.r*0.8);if(q)labs.push([q[0],q[1],r.isl?'Ö, VÄLJ SIDA':r.gift?'STEN, FLYTTAD AV DIG':'STEN, LÄ BAKOM',q[3]])}
 for(const d of DB){const dz=d.y-camY;if(dz>30&&dz<480){const q=P(d.x,d.y,0);if(q)labs.push([q[0],q[1],DT[d.k].name,q[3]])}}
 for(const o of SU){const dz=o.y-camY;if(dz>30&&dz<520){const q=P(o.x,o.y,o.tp==='moose'||o.tp==='heron'?20:0);if(q)labs.push([q[0],q[1],SUD[o.tp].name,q[3]])}}
+lakeLabs(labs);
 let ns=0;for(const st of ST){const dz=st.y-camY;if(dz>30&&dz<450&&ns<2){const q=P(st.x,st.y,0);if(q){labs.push([q[0],q[1],'STIM, PÅ VÄG NEDSTRÖMS',q[3]]);ns++}}}
 labs.sort((a,b)=>a[3]-b[3]);labs.slice(0,5).forEach((l,i)=>{if(l[0]<-20||l[0]>W+20)return;const dx=(l[0]<W/2?1:-1)*(28+(i%2)*14),dy=-22-(i%3)*10;chip(l[2],l[0],l[1],dx,dy)});
 const q=P(f.x,f.y,f.z);if(q)chip('FISK 01, ORK '+Math.round(f.stam)+' %',q[0]+8,q[1],34,18);
-g.font='500 11px '+CF;const t='↑ KÄLLAN: POSITION OKÄND';const w=g.measureText(t).width+12;g.fillStyle='rgba(5,35,45,0.88)';g.fillRect(W/2-w/2,hor-34,w,18);g.fillStyle=C.be;g.fillText(t,W/2-w/2+6,hor-21)}
+g.font='500 11px '+CF;const t=lake?'KÄLLSJÖN: HITTAD':'↑ KÄLLAN: POSITION OKÄND';const w=g.measureText(t).width+12;g.fillStyle='rgba(5,35,45,0.88)';g.fillRect(W/2-w/2,hor-34,w,18);g.fillStyle=C.be;g.fillText(t,W/2-w/2+6,hor-21)}
 function viewCube(){const s=42,x=VW-62,y=40;g.lineWidth=1;g.strokeStyle='#8a929c';g.fillStyle='#e2e6ea';poly([[x-s/2,y-s/2],[x-s/2+9,y-s/2-9],[x+s/2+9,y-s/2-9],[x+s/2,y-s/2]]);g.fill();g.stroke();g.fillStyle='#cfd5db';poly([[x+s/2,y-s/2],[x+s/2+9,y-s/2-9],[x+s/2+9,y+s/2-9],[x+s/2,y+s/2]]);g.fill();g.stroke();g.fillStyle='#f6f7f9';g.fillRect(x-s/2,y-s/2,s,s);g.strokeRect(x-s/2,y-s/2,s,s);g.fillStyle='#4a525c';g.font='11px '+HF;g.textAlign='center';g.fillText('FRAM',x,y+4);g.beginPath();g.ellipse(x+4,y+s/2+10,s*0.9,s*0.26,0,0,7);g.stroke();g.textAlign='left'}
 const PBP=["svg2", "metadata8", "defs6", "namedview4", "g10", "g12", "M 1467.62,2244.59 H 863.305 v -431.66 h 604.315 c 333.75,0 604.31,-270.55 604.31,-604.31 0,-333.749 -270.56,-604.311 -604.31,-604.311 -333.76,0 -604.315,270.562 -604.315,604.311 v 604.31 H 431.652 v -604.31 c 0,-572.108 463.856,-1035.96 1035.968,-1035.96 572.11,0 1035.96,463.852 1035.96,1035.96 0,572.11 -463.85,1035.97 -1035.96,1035.97", "path14", "m 0,1812.93 h 431.652 v 431.66 H 0 v -431.66", "path16", "m 431.652,2244.59 h 431.653 v 431.65 H 431.652 v -431.65", "path18"];let PB=null;
 function pbLogo(x,y,s,col){if(typeof Path2D==='undefined')return;if(!PB)PB=PBP.map(p=>new Path2D(p));g.save();g.translate(x,y);g.scale(s/356.82666,s/356.82666);g.transform(1.3333333,0,0,-1.3333333,0,356.82667);g.scale(0.1,0.1);g.fillStyle=col;PB.forEach(p=>g.fill(p));g.restore()}
@@ -247,7 +291,7 @@ g.strokeStyle='#bdbdbd';g.strokeRect(6.5,y+0.5,SIDE-14,32);g.fillStyle='#1f7ad6'
 const rows=[['Begränsningar'],['Nivå','Vattenyta'],['Förskjutning',(f.z/30).toFixed(2)+' m'],['Identitetsdata'],['Märkning','FISK 01'],['Kommentarer','Mot strömmen'],['Faser'],['Skapad i fas','Rom'],['Status',state==='won'?'Vid källan':'Uppströms'],['Prestanda'],['Ork',Math.round(f.stam)+' %'],['Hoppkostnad',(footNow?20:12)+' ork'],['Uppströms',m+' m']];
 const lc=Math.round(SIDE*0.47);for(const r of rows){if(r.length===1){g.fillStyle='#ececec';g.fillRect(0,y,SIDE,17);g.fillStyle='#222';g.font='700 11px '+HF;g.fillText(r[0],8,y+12)}else{g.fillStyle='#ffffff';g.fillRect(0,y,SIDE,17);g.fillStyle='#e2e2e2';g.fillRect(0,y+16,SIDE,1);g.fillRect(lc,y,1,17);g.fillStyle='#555';g.font='11px '+HF;g.fillText(r[0],8,y+12);g.fillStyle='#111';g.fillText(r[1],lc+6,y+12)}y+=17}
 y+=10;g.fillStyle='#e6e6e6';g.fillRect(0,y,SIDE,20);g.fillStyle='#222';g.font='700 11px '+HF;g.fillText('Projektbläddrare',8,y+14);y+=26;g.font='11px '+HF;
-for(const[t,ind,b]of[['Vyer (alla)',0],['3D-vyer',1],['{Älv}',2,1],['Planvyer',1],['Mynning',2],['Källan (saknas)',2],['Scheman',0],['Kollisionsrapport ('+clashes+')',1],['Familjer',0],['Fiskar',1],['Stockar och båtar',1],['Kanoter',1]]){g.fillStyle=b?'#1f7ad6':'#333';g.font=(b?'700 ':'')+'11px '+HF;g.fillText((ind?'':'')+t,10+ind*12,y+11);y+=16}
+for(const[t,ind,b]of[['Vyer (alla)',0],['3D-vyer',1],['{Älv}',2,1],['Planvyer',1],['Mynning',2],[lake?'Källsjön':'Källan (saknas)',2],['Scheman',0],['Kollisionsrapport ('+clashes+')',1],['Familjer',0],['Fiskar',1],['Stockar och båtar',1],['Kanoter',1]]){g.fillStyle=b?'#1f7ad6':'#333';g.font=(b?'700 ':'')+'11px '+HF;g.fillText((ind?'':'')+t,10+ind*12,y+11);y+=16}
 g.restore()}
 g.fillStyle='#ececec';g.fillRect(0,H-22,W,22);g.fillStyle='#c8c8c8';g.fillRect(0,H-22,W,1);g.fillStyle='#333';g.font='11px '+HF;
 if(SIDE>0){g.fillText('Klicka för att välja, TAB för alternativ, Ctrl lägger till',8,H-7);g.textAlign='right';g.fillText('X '+f.x.toFixed(1)+'   Y '+f.y.toFixed(1)+'   Kollisioner: '+clashes+'   Huvudmodell',W-8,H-7);g.textAlign='left'}
@@ -261,13 +305,13 @@ let yy=y0+86;g.font='14px '+HF;g.fillStyle='rgba(240,240,225,0.85)';blocks.forEa
 g.strokeStyle=C.be;g.lineWidth=1;g.beginPath();g.moveTo(x0+22,yy);g.lineTo(x0+pw-22,yy);g.stroke();g.fillStyle=C.g2;g.font='500 15px '+CF;g.fillText(foot,W/2,yy+26);g.textAlign='left'}
 function drawHUD(){const jc=footNow?20:12,can=f.stam>=jc&&f.air<=0;
 if(bim)bimChrome();else{rr(10,10,176,50,8);g.fillStyle=C.nk;g.fill();g.fillStyle=C.be;g.font='12px '+HF;g.fillText('Ork',20,30);g.fillStyle='rgba(240,240,225,0.2)';g.fillRect(52,21,122,9);g.fillStyle=f.stam>=jc?C.g2:C.r1;g.fillRect(52,21,122*f.stam/100,9);g.fillStyle=C.be;g.fillRect(52+122*jc/100,18,1.5,15);
-g.font='500 13px '+CF;g.fillText(Math.max(0,Math.round((f.y-300)/2))+' m uppströms',20,50)}
+g.font='500 13px '+CF;g.fillText(lake&&inLake(f.y)?'Källsjön':Math.max(0,Math.round((f.y-300)/2))+' m uppströms',20,50);if(lake){g.font='500 12px '+CF;let t='Hinder '+LS.h+'  ·  Ringar '+LS.r+'  ·  Slalom '+LS.s+'/6  ·  Skrämda badgäster '+LS.k;if(g.measureText(t).width+20>W-110)t='Hinder '+LS.h+' · Ringar '+LS.r+' · Slalom '+LS.s+'/6 · Skrämda '+LS.k;const w=g.measureText(t).width+20;rr(10,H-60,w,26,8);g.fillStyle=C.nk;g.fill();g.fillStyle=C.be;g.fillText(t,20,H-42)}}
 if(state==='play'&&bim){const b=btn();g.globalAlpha=can?1:0.45;g.fillStyle=footNow?'#3d93e8':'#1f7ad6';g.fillRect(b.x-34,b.y-18,68,36);g.strokeStyle='#0f4f91';g.lineWidth=1;g.strokeRect(b.x-33.5,b.y-17.5,67,35);g.fillStyle='#fff';g.font='700 12px '+HF;g.textAlign='center';g.fillText('Hoppa',b.x,b.y+4);g.textAlign='left';g.globalAlpha=1}
 else if(state==='play'){const b=btn(),pulse=footNow&&can?1+0.08*Math.sin(T*10):1;g.globalAlpha=can?1:0.4;g.fillStyle=footNow?C.g2:C.g1;g.beginPath();g.arc(b.x,b.y,b.r*pulse,0,7);g.fill();g.strokeStyle=C.be;g.lineWidth=1.5;g.stroke();g.fillStyle=C.be;g.textAlign='center';g.font='500 15px '+CF;g.fillText('Hoppa',b.x,b.y+5);g.textAlign='left';g.globalAlpha=1}
 if(toastT>0&&state==='play'&&bim)bimToast();
-else if(toastT>0&&state==='play'){g.globalAlpha=Math.min(1,toastT*2);g.font='15px '+HF;const w=g.measureText(toastTxt).width+28;rr((W-w)/2,72,w,32,8);g.fillStyle=C.nk;g.fill();g.fillStyle=C.be;g.textAlign='center';g.fillText(toastTxt,W/2,93);g.textAlign='left';g.globalAlpha=1}
-if(!bim){g.fillStyle='rgba(5,35,45,0.7)';g.font='11px '+HF;g.textAlign='left';g.fillText('Upstream v0.6',12,H-10)}
-if(state==='start')panel('Upstream',['Någonstans uppströms ligger källan. Ingen vet riktigt var.','Du ser laxen bakifrån. Håll fingret där du vill simma, eller använd piltangenterna. Släpp, så tar strömmen dig med. Vila i lä bakom stenar.','Kvistar, stockar och båtar kommer flytande. Väj, eller hoppa med knappen eller mellanslag.'],'Tryck för att börja');
+else if(toastT>0&&state==='play'){g.globalAlpha=Math.min(1,toastT*2);g.font='15px '+HF;const ls=wrap(toastTxt,W-60),w=Math.max(...ls.map(l=>g.measureText(l).width))+28,h=14+ls.length*19;rr((W-w)/2,72,w,h,8);g.fillStyle=C.nk;g.fill();g.fillStyle=C.be;g.textAlign='center';ls.forEach((l,i)=>g.fillText(l,W/2,93+i*19));g.textAlign='left';g.globalAlpha=1}
+if(!bim){g.fillStyle='rgba(5,35,45,0.7)';g.font='11px '+HF;g.textAlign='left';g.fillText('Upstream v0.7',12,H-10)}
+if(state==='start')panel('Upstream',['Någonstans uppströms ligger källan. Ingen vet riktigt var, men det sägs att man får leka där.','Du ser laxen bakifrån. Håll fingret där du vill simma, eller använd piltangenterna. Släpp, så tar strömmen dig med. Vila i lä bakom stenar.','Kvistar, stockar och båtar kommer flytande. Väj, eller hoppa med knappen eller mellanslag.'],'Tryck för att börja');
 else if(state==='mouth')panel('Mynningen',['Varmt, lugnt och fullt av fisk som kom hit precis som du.','Längst uppströms: '+Math.max(0,Math.round((maxY-300)/2))+' m'],'Tryck för att simma igen');
 else if(state==='won'){const m=Math.floor(endT/60),sec=Math.floor(endT%60);panel('Källan',['Här börjar älven. Du knuffade till en sten, och nu rinner vattnet lite annorlunda hela vägen ner.','Tid: '+m+':'+String(sec).padStart(2,'0')],'Tryck för att simma igen')}}
 function render(){layout();M.save();M.translate(VX,VY);M.beginPath();M.rect(0,0,VW,VH);M.clip();g=M;setView(VW,VH);drawWorld();if(specs)drawSpecs();if(bim)viewCube();M.restore();g=M;setView(cw,ch);drawHUD()}
@@ -281,7 +325,7 @@ document.getElementById('bSound').onclick=()=>{snd=!snd;document.getElementById(
 document.getElementById('bGhost').onclick=()=>{ghostOn=!ghostOn;document.getElementById('tGhost').textContent=ghostOn?'Spökfisk på':'Spökfisk av'};
 document.getElementById('bSpecs').onclick=()=>{specs=!specs;document.getElementById('tSpecs').textContent=specs?'Specifikationer på':'Specifikationer av';cv.focus()};
 document.getElementById('bBim').onclick=()=>{bim=!bim;layout();document.getElementById('tBim').textContent=bim?'BIM-läge på':'BIM-läge av';cv.focus()};
-document.getElementById('bHome').onclick=()=>{state='start';overT=0;steerId=null;resetFish();DB.length=0;SU=[];toastT=0;cv.focus()};
+document.getElementById('bHome').onclick=()=>{lake=false;LK=null;toastQ=[];state='start';overT=0;steerId=null;resetFish();DB.length=0;SU=[];toastT=0;cv.focus()};
 document.getElementById('bRestart').onclick=()=>{ac();startRun();cv.focus()};
 let last=performance.now();
 function loop(n){if(Math.abs(cv.clientWidth-cw)>1)resize();const dt=Math.min(0.05,(n-last)/1000);last=n;update(dt);render();requestAnimationFrame(loop)}

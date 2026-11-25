@@ -26,7 +26,7 @@ Spelet görs på uppdrag av Plan B AB och ligger tills vidare på mickla.se. Det
 - Kvistar, stockar och båtar flyter nedströms och kostar ork vid krock (3, 8, 16). De studsar mot stenar.
 - Överraskningar utan kostnad: kanot med två oense turister, badanka, älg, skyddshjälm, flaskpost, häger.
 - Stim som flyter nedströms (det bekväma valet). Nedströmssimning går att styra bara lite.
-- Når man källan flyttas stenar så att älven blir lättare nästa tur. Spökfisken visar bästa tur.
+- Når man källan kommer man till Källsjön, belöningen: ingen ström, ork kostar inget, hopp är gratis. Där finns hinder (stockar att hoppa över), ringar att hoppa igenom, en slalombana med sex bojar, skygga badbarn som skriker och simmar undan när man nuddar dem, och en röd stuga med brygga. Räknare för hinder, ringar, slalom och skrämda badgäster. Samtidigt flyttas stenar nedströms så att älven blir lättare nästa tur. Spökfisken visar bästa tur.
 - Lägen: Specifikationer (teknisk annotering) och BIM-läge (modellprogram med egenskapspanel, projektbläddrare och kollisionsvarningar). Plan B:s symbol i fönstrets titelrad, ingen annan programvaras logotyp.
 
 ## Beslut

@@ -28,7 +28,7 @@ globalThis.document = { getElementById: (id) => id === 'c' ? canvas : (els[id] |
 globalThis.window = { devicePixelRatio: 2, addEventListener() {} };
 let cb; globalThis.requestAnimationFrame = (f) => { cb = f; }; globalThis.performance = { now: () => 0 };
 try {
-  new Function(code)();
+  new Function(code.replace('requestAnimationFrame(loop);\n})();','requestAnimationFrame(loop);globalThis.__lake=()=>{f.y=L-21;f.x=cx(L);camY=f.y-BACK};\n})();'))();
   let t = 0; const step = (n) => { for (let i = 0; i < n; i++) { t += 16; cb(t); } };
   step(5);
   handlers.pointerdown({ pointerId: 1, clientX: 300, clientY: 300 }); step(3);
@@ -38,6 +38,7 @@ try {
   step(1500);
   canvas.clientWidth = 360; step(600);
   els.bRestart.onclick(); step(600);
+  els.bRestart.onclick(); step(10); globalThis.__lake(); step(5); handlers.pointerdown({ pointerId: 5, clientX: 360, clientY: 200 }); step(900); handlers.pointerdown({ pointerId: 6, clientX: 548, clientY: 418 }); step(300);
   if (typeof els.bHome.onclick !== 'function') fail('knappen bHome saknar funktion'); else { els.bHome.onclick(); step(60); handlers.pointerdown({ pointerId: 4, clientX: 300, clientY: 300 }); step(300); }
 } catch (e) { fail('spelet kraschade: ' + (e && e.stack || e)); }
 
