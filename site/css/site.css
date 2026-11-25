@@ -1,0 +1,22 @@
+@font-face{font-family:"Chakra Petch";font-style:normal;font-weight:500;font-display:swap;src:url(../fonts/chakra-petch-latin-500-normal.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:"Chakra Petch";font-style:normal;font-weight:500;font-display:swap;src:url(../fonts/chakra-petch-latin-ext-500-normal.woff2) format("woff2");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+:root{--gron:#00826E;--gron2:#1EA08C;--rod:#F07878;--lila:#8C82E6;--natursvart:#05232D;--beige:#F0F0E1}
+*{box-sizing:border-box}
+html{color-scheme:light}
+body{margin:0;background:var(--beige);color:var(--natursvart);font-family:"Pulp Display",Helvetica,Arial,sans-serif;font-size:16px;line-height:1.55}
+main{max-width:720px;margin:0 auto;padding:20px 16px 32px}
+h1{font-size:34px;line-height:1.1;margin:0 0 4px;font-weight:700}
+h2{font-size:20px;margin:0 0 8px;font-weight:700}
+.lead{margin:0 0 16px;font-size:17px}
+canvas{width:100%;height:480px;display:block;border-radius:10px;touch-action:none;outline:none;background:#c9d8da}
+canvas:focus-visible{box-shadow:0 0 0 3px var(--gron2)}
+.controls{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 24px}
+button{font:500 14px "Chakra Petch",Helvetica,Arial,sans-serif;color:var(--natursvart);background:transparent;border:1.5px solid var(--natursvart);border-radius:8px;padding:8px 12px;cursor:pointer}
+button:hover{background:rgba(5,35,45,.07)}
+button:focus-visible{outline:3px solid var(--gron2);outline-offset:2px}
+.howto{border-top:1px solid var(--natursvart);padding-top:16px}
+.howto ul{margin:0 0 12px;padding-left:20px}
+.howto li{margin-bottom:6px}
+.note{font-size:14px;margin:0}
+footer{display:flex;align-items:center;gap:10px;margin-top:28px;padding-top:12px;border-top:1px solid var(--natursvart);font-size:13px;flex-wrap:wrap}
+footer img{height:20px;width:auto;opacity:.75}

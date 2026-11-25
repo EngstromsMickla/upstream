@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Upstream</title>
+<meta name="description" content="Upstream, ett spel om att simma mot strömmen. Gjort för Plan B AB.">
+<link rel="icon" href="img/planb-symbol-gron.svg" type="image/svg+xml">
+<link rel="stylesheet" href="css/site.css">
+</head>
+<body>
+<main>
+<header>
+<h1>Upstream</h1>
+<p class="lead">Simma mot strömmen. Någonstans uppströms ligger källan.</p>
+</header>
+
+<canvas id="c" tabindex="0" aria-label="Spelet Upstream. Styr laxen med fingret, musen eller piltangenterna. Hoppa med mellanslag."></canvas>
+
+<div class="controls">
+<button id="bBim" type="button"><span id="tBim">BIM-läge av</span></button>
+<button id="bSpecs" type="button"><span id="tSpecs">Specifikationer av</span></button>
+<button id="bSound" type="button"><span id="tSound">Ljud på</span></button>
+<button id="bGhost" type="button"><span id="tGhost">Spökfisk på</span></button>
+<button id="bRestart" type="button">Börja om</button>
+</div>
+
+<section class="howto">
+<h2>Så spelar du</h2>
+<ul>
+<li>Håll fingret eller musen på vattnet där du vill simma. Längre upp på skärmen betyder längre fram. Piltangenterna fungerar också.</li>
+<li>Släpp, så tar strömmen dig med. Nedströms går fort, men det är strömmen som bestämmer.</li>
+<li>Vila i lä bakom stenar. Där fylls orken på.</li>
+<li>Hoppa med knappen eller mellanslag: över stenar, stockar och andra fiskar, och uppför forsen. Strecket i orkmätaren visar vad ett hopp kostar.</li>
+<li>Spökfisken visar din bästa tur. Specifikationer och BIM-läge visar älven på andra sätt.</li>
+</ul>
+<p class="note">Ingenting sparas eller skickas. Spelet körs helt i din webbläsare.</p>
+</section>
+
+<footer>
+<img src="img/ormen.png" alt="Engströms Mickla AB" class="mickla">
+<img src="img/planb-symbol-natursvart.svg" alt="Plan B AB" class="planb">
+<span>Upstream v0.6 · © Plan B AB 2026 · Gjort av Engströms Mickla AB</span>
+</footer>
+</main>
+<script src="js/game.js"></script>
+</body>
+</html>
