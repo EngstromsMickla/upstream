@@ -23,8 +23,15 @@
 <button id="bSound" type="button"><span id="tSound">Ljud på</span></button>
 <button id="bGhost" type="button"><span id="tGhost">Spökfisk på</span></button>
 <button id="bHome" type="button">Till start</button>
+<button id="bLake" type="button" hidden>Till Källsjön</button>
 <button id="bRestart" type="button">Börja om</button>
 </div>
+
+<form id="pwForm" class="pw" autocomplete="off">
+<label for="pwIn">Har du varit vid källan? Lösenordet tar dig direkt till Källsjön.</label>
+<div class="pwrow"><input id="pwIn" type="text" maxlength="40" spellcheck="false" autocapitalize="off"><button type="submit">Simma dit</button></div>
+<p id="pwErr" class="err" aria-live="polite"></p>
+</form>
 
 <section class="howto">
 <h2>Så spelar du</h2>
@@ -42,7 +49,7 @@
 <footer>
 <img src="img/ormen.png" alt="Engströms Mickla AB" class="mickla">
 <img src="img/planb-symbol-natursvart.svg" alt="Plan B AB" class="planb">
-<span>Upstream v0.7 · © Plan B AB 2026 · Gjort av Engströms Mickla AB</span>
+<span>Upstream v0.8 · © Plan B AB 2026 · Gjort av Engströms Mickla AB</span>
 </footer>
 </main>
 <script src="js/game.js"></script>

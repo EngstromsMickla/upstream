@@ -20,3 +20,9 @@ button:focus-visible{outline:3px solid var(--gron2);outline-offset:2px}
 .note{font-size:14px;margin:0}
 footer{display:flex;align-items:center;gap:10px;margin-top:28px;padding-top:12px;border-top:1px solid var(--natursvart);font-size:13px;flex-wrap:wrap}
 footer img{height:20px;width:auto;opacity:.75}
+.pw{margin:-8px 0 24px}
+.pw label{display:block;font-size:14px;margin-bottom:6px}
+.pwrow{display:flex;gap:8px}
+.pw input{font:15px Helvetica,Arial,sans-serif;color:var(--natursvart);background:#fff;border:1.5px solid var(--natursvart);border-radius:8px;padding:8px 10px;flex:1;min-width:0;max-width:260px}
+.pw input:focus-visible{outline:3px solid var(--gron2);outline-offset:1px}
+.err{color:#b23a3a;font-size:13px;min-height:18px;margin:4px 0 0}

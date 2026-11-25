@@ -14,7 +14,7 @@ const hwR=y=>Math.max(0,(118+28*Math.sin(y/260+2))*Math.min(1,(L+40-y)/320+0.2)*
 const cx=y=>y<=L?cxR(y):cxR(L);
 const hw=y=>{const r=hwR(y);if(y<L-30)return r;const dy=y-LY;return Math.max(r,Math.abs(dy)<LR?Math.sqrt(LR*LR-dy*dy):0)};
 const LY=L+300,LR=320,X0=cxR(L);
-let lake=false,LK=null,LS={h:0,r:0,s:0,k:0},toastQ=[];
+const PW='planb4ever';let reached=false,lake=false,LK=null,LS={h:0,r:0,s:0,k:0},toastQ=[];
 const KIDS=['Iiih!','Mamma, en fisk!','Den nuddade mig!','Pappa! Fisken!','Den är jättestor!','Den har tittat på mig!'];
 function buildLake(){const o={hurdles:[],rings:[],buoys:[],kids:[],cabin:{x:X0+262,y:LY+250}};
 for(let i=0;i<4;i++)o.hurdles.push({x:X0-40,y:LY-190+i*85,a:0,cd:0,passed:0});
@@ -23,7 +23,9 @@ for(let i=0;i<6;i++)o.buoys.push({x:X0-175,y:LY-200+i*72,side:i%2?1:-1,lit:0});
 for(let i=0;i<4;i++)o.kids.push({x:X0+170+Math.random()*80,y:LY-120+i*80,hx:X0+170+Math.random()*80,hy:LY-120+i*80,vx:0,vy:0,t:Math.random()*6,scared:0,say:'',col:['#e85d75','#f2c230','#5aa9e6','#7cc576'][i],hair:['#4a2f1f','#e8c46a','#2b2b2b','#a0522d'][i]});
 return o}
 function inLake(y){return y>L-15}
-function enterLake(){lake=true;LK=buildLake();endT=T;changed=true;S.chime();if(rec.length>4){ghost=rec.slice();ghostBest=1e9}toast('Källsjön! Här kostar inget ork. Lek fritt.');toastQ=['Nedströms flyttade sig några stenar. Nästa tur blir lättare.','Prova hindren, ringarna och slalombanan. Badgästerna är skygga.']}
+function showLakeBtn(){reached=true;const b=document.getElementById('bLake');if(b)b.hidden=false}
+function enterLake(){lake=true;LK=buildLake();endT=T;changed=true;S.chime();if(rec.length>4){ghost=rec.slice();ghostBest=1e9}showLakeBtn();toast('Källsjön! Här kostar inget ork. Lek fritt.');toastQ=['Nedströms flyttade sig några stenar. Nästa tur blir lättare.','Lösenordet till Källsjön är PlanB4ever. Det tar dig hit direkt nästa gång.','Prova hindren, ringarna och slalombanan. Badgästerna är skygga.']}
+function goLake(){changed=true;startRun();f.y=L+40;f.x=X0;camX=f.x;camY=f.y-BACK;maxY=f.y;lake=true;LK=buildLake();showLakeBtn();toast('Välkommen tillbaka till Källsjön.');toastQ=['Prova hindren, ringarna och slalombanan. Badgästerna är skygga.']}
 function lakeUpdate(dt,py){if(!LK)return;
 if(toastT<=0&&toastQ.length)toast(toastQ.shift());
 for(const h of LK.hurdles){h.cd-=dt}
@@ -48,7 +50,7 @@ g.lineWidth=Math.max(1,3*k);for(let i=0;i<6;i++){g.strokeStyle=bim?(i%2?'#dddddd
 const sw=Math.sin(kd.t*(kd.scared>0?14:4))*3*k;g.strokeStyle=bim?'#222':'#e8c6a3';g.lineWidth=Math.max(1,1.4*k);g.beginPath();g.moveTo(X-3*k,Y-3*k+bob);g.lineTo(X-8*k,Y-6*k+sw+bob);g.moveTo(X+3*k,Y-3*k+bob);g.lineTo(X+8*k,Y-6*k-sw+bob);g.stroke();
 g.beginPath();g.arc(X,Y-6*k+bob,3.3*k,0,7);g.fillStyle=bim?'#f4f4f4':'#e8c6a3';g.fill();ol(1);g.beginPath();g.arc(X,Y-7*k+bob,3.4*k,Math.PI,0);g.fillStyle=bim?'#e0e0e0':kd.hair;g.fill();if(kd.scared>0){g.fillStyle='#222';g.beginPath();g.arc(X,Y-4.6*k+bob,0.9*k,0,7);g.fill()}
 g.globalAlpha=1;if(kd.scared>0&&p[3]<500)bubble(kd.say,X,Y-10*k)}})}}
-function lakeLabs(labs){if(!LK)return;const near=(o,name,z)=>{const dz=o.y-camY;if(dz>30&&dz<520){const q=P(o.x,o.y,z||0);if(q)labs.push([q[0],q[1],name,q[3]])}};LK.hurdles.slice(0,2).forEach(h=>near(h,'HINDER, HOPPA, 0 ORK'));LK.rings.forEach(r=>near(r,'RING, HOPPA IGENOM',r.z));near(LK.buoys[0],'SLALOMBANA, 6 BOJAR');LK.kids.slice(0,2).forEach(k=>near(k,'BADGÄST, SKYGG',6));near(LK.cabin,'STUGA, EJ I TIDPLAN',20)}
+function lakeLabs(labs){if(!LK)return;const near=(o,name,z)=>{const dz=o.y-camY;if(dz>30&&dz<520){const q=P(o.x,o.y,z||0);if(q)labs.push([q[0],q[1],name,q[3]])}};LK.hurdles.slice(0,2).forEach(h=>near(h,'HINDER, HOPPA, 0 ORK'));LK.rings.forEach(r=>near(r,'RING, HOPPA IGENOM',r.z));near(LK.buoys[0],'SLALOMBANA, 6 BOJAR');LK.kids.slice(0,2).forEach(k=>near(k,'BADGÄST, SKYGG',6));near(LK.cabin,'STUGA, LÖSENORD: PlanB4ever',20)}
 
 function rng(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 let changed=false,rocks=[];
@@ -310,7 +312,7 @@ if(state==='play'&&bim){const b=btn();g.globalAlpha=can?1:0.45;g.fillStyle=footN
 else if(state==='play'){const b=btn(),pulse=footNow&&can?1+0.08*Math.sin(T*10):1;g.globalAlpha=can?1:0.4;g.fillStyle=footNow?C.g2:C.g1;g.beginPath();g.arc(b.x,b.y,b.r*pulse,0,7);g.fill();g.strokeStyle=C.be;g.lineWidth=1.5;g.stroke();g.fillStyle=C.be;g.textAlign='center';g.font='500 15px '+CF;g.fillText('Hoppa',b.x,b.y+5);g.textAlign='left';g.globalAlpha=1}
 if(toastT>0&&state==='play'&&bim)bimToast();
 else if(toastT>0&&state==='play'){g.globalAlpha=Math.min(1,toastT*2);g.font='15px '+HF;const ls=wrap(toastTxt,W-60),w=Math.max(...ls.map(l=>g.measureText(l).width))+28,h=14+ls.length*19;rr((W-w)/2,72,w,h,8);g.fillStyle=C.nk;g.fill();g.fillStyle=C.be;g.textAlign='center';ls.forEach((l,i)=>g.fillText(l,W/2,93+i*19));g.textAlign='left';g.globalAlpha=1}
-if(!bim){g.fillStyle='rgba(5,35,45,0.7)';g.font='11px '+HF;g.textAlign='left';g.fillText('Upstream v0.7',12,H-10)}
+if(!bim){g.fillStyle='rgba(5,35,45,0.7)';g.font='11px '+HF;g.textAlign='left';g.fillText('Upstream v0.8',12,H-10)}
 if(state==='start')panel('Upstream',['Någonstans uppströms ligger källan. Ingen vet riktigt var, men det sägs att man får leka där.','Du ser laxen bakifrån. Håll fingret där du vill simma, eller använd piltangenterna. Släpp, så tar strömmen dig med. Vila i lä bakom stenar.','Kvistar, stockar och båtar kommer flytande. Väj, eller hoppa med knappen eller mellanslag.'],'Tryck för att börja');
 else if(state==='mouth')panel('Mynningen',['Varmt, lugnt och fullt av fisk som kom hit precis som du.','Längst uppströms: '+Math.max(0,Math.round((maxY-300)/2))+' m'],'Tryck för att simma igen');
 else if(state==='won'){const m=Math.floor(endT/60),sec=Math.floor(endT%60);panel('Källan',['Här börjar älven. Du knuffade till en sten, och nu rinner vattnet lite annorlunda hela vägen ner.','Tid: '+m+':'+String(sec).padStart(2,'0')],'Tryck för att simma igen')}}
@@ -326,6 +328,8 @@ document.getElementById('bGhost').onclick=()=>{ghostOn=!ghostOn;document.getElem
 document.getElementById('bSpecs').onclick=()=>{specs=!specs;document.getElementById('tSpecs').textContent=specs?'Specifikationer på':'Specifikationer av';cv.focus()};
 document.getElementById('bBim').onclick=()=>{bim=!bim;layout();document.getElementById('tBim').textContent=bim?'BIM-läge på':'BIM-läge av';cv.focus()};
 document.getElementById('bHome').onclick=()=>{lake=false;LK=null;toastQ=[];state='start';overT=0;steerId=null;resetFish();DB.length=0;SU=[];toastT=0;cv.focus()};
+document.getElementById('bLake').onclick=()=>{ac();goLake();cv.focus()};
+{const fm=document.getElementById('pwForm'),inp=document.getElementById('pwIn'),err=document.getElementById('pwErr');if(fm){fm.onsubmit=e=>{e.preventDefault();const v=String(inp.value||'').trim().toLowerCase();if(v===PW){err.textContent='';inp.value='';ac();goLake();cv.focus()}else{err.textContent=v?'Fel lösenord. Det finns vid källan.':'Skriv lösenordet först.'}};inp.oninput=()=>{err.textContent=''}}}
 document.getElementById('bRestart').onclick=()=>{ac();startRun();cv.focus()};
 let last=performance.now();
 function loop(n){if(Math.abs(cv.clientWidth-cw)>1)resize();const dt=Math.min(0.05,(n-last)/1000);last=n;update(dt);render();requestAnimationFrame(loop)}

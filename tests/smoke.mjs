@@ -39,6 +39,13 @@ try {
   canvas.clientWidth = 360; step(600);
   els.bRestart.onclick(); step(600);
   els.bRestart.onclick(); step(10); globalThis.__lake(); step(5); handlers.pointerdown({ pointerId: 5, clientX: 360, clientY: 200 }); step(900); handlers.pointerdown({ pointerId: 6, clientX: 548, clientY: 418 }); step(300);
+  if (typeof els.pwForm.onsubmit !== 'function') fail('lösenordsformuläret saknar funktion');
+  else {
+    els.pwIn.value = 'fel'; els.pwForm.onsubmit({ preventDefault() {} }); if (!els.pwErr.textContent) fail('fel lösenord gav inget felmeddelande');
+    els.pwIn.value = ' PlanB4ever '; els.pwForm.onsubmit({ preventDefault() {} }); if (els.pwErr.textContent) fail('rätt lösenord gav felmeddelande'); step(300);
+    if (els.bLake.hidden !== false) fail('knappen Till Källsjön visas inte efter besöket');
+    els.bLake.onclick(); step(300);
+  }
   if (typeof els.bHome.onclick !== 'function') fail('knappen bHome saknar funktion'); else { els.bHome.onclick(); step(60); handlers.pointerdown({ pointerId: 4, clientX: 300, clientY: 300 }); step(300); }
 } catch (e) { fail('spelet kraschade: ' + (e && e.stack || e)); }
 
