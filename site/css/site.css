@@ -26,3 +26,13 @@ footer img{height:20px;width:auto;opacity:.75}
 .pw input{font:15px Helvetica,Arial,sans-serif;color:var(--natursvart);background:#fff;border:1.5px solid var(--natursvart);border-radius:8px;padding:8px 10px;flex:1;min-width:0;max-width:260px}
 .pw input:focus-visible{outline:3px solid var(--gron2);outline-offset:1px}
 .err{color:#b23a3a;font-size:13px;min-height:18px;margin:4px 0 0}
+.logo{height:34px;width:auto;display:block;margin:0 0 14px}
+.by{margin:-8px 0 16px;font-size:14px}
+.clip{border-top:1px solid var(--natursvart);padding-top:16px;margin-bottom:24px}
+.clip p{margin:0 0 10px;font-size:14px}
+.clip video{display:block;width:100%;max-width:320px;height:auto;aspect-ratio:9/16;border-radius:10px;background:var(--natursvart)}
+.outside{background:var(--natursvart);color:var(--beige);border-radius:10px;padding:16px 18px;margin-top:24px}
+.outside h2{margin:0 0 6px}
+.outside p{margin:0}
+.outside a{color:#fff;font-weight:700}
+.outside a:focus-visible{outline:3px solid var(--gron2);outline-offset:2px}

@@ -16,7 +16,8 @@ Spelet görs på uppdrag av Plan B AB och ligger tills vidare på mickla.se. Det
 ## Struktur
 - `site/index.html`: sidan med kort användarinstruktion och sidfot.
 - `site/js/game.js`: hela spelet (canvas, ljud syntetiseras i webbläsaren).
-- `site/css/site.css`, `site/fonts/`, `site/img/`: formgivning, typsnitt, logotyper.
+- `site/css/site.css`, `site/fonts/`, `site/img/`: formgivning, typsnitt, logotyper (Plan B:s logotyp med text i sidhuvudet, symbolen i spelet och sidfoten).
+- `site/media/`: klippet ur serien Jag har tänkt på en grej (H.264, 720 px, utan metadata) och dess affischbild.
 - `tests/smoke.mjs`: röktest som kör spelet utan webbläsare och kontrollerar att inget laddas externt.
 - `.github/workflows/pages.yml`: kör testet och publicerar `site/` till GitHub Pages. Publiceringen stoppas om testet fallerar.
 
@@ -33,4 +34,5 @@ Spelet görs på uppdrag av Plan B AB och ligger tills vidare på mickla.se. Det
 - Namn: Upstream (först Beat the stream). Fisk, inte fågel.
 - Spökfisk går att slå av och på.
 - Genväg till Källsjön: knappen Till Källsjön visas när man nått sjön under besöket (inget sparas), och lösenordet PlanB4ever (skiftlägesokänsligt) under spelet tar en direkt dit. Lösenordet ges vid sjön och står på stugan i specifikationsläget. Det står öppet i det publika repot och är en lek, inget lås.
+- Sidan säger att spelet är gjort av Dan Engström för Plan B:s medarbetare. För besökare utanför bolaget finns rutan Jobbar du inte på Plan B ännu? med länk till karriar.planbab.se. Externa länkar är tillåtna; allt som laddas ligger på den egna domänen.
 - Copyright: © Plan B AB 2026, gjort av Engströms Mickla AB.

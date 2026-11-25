@@ -11,10 +11,10 @@ const fail = (m) => { console.error('FEL: ' + m); failed++; };
 // 1. Sidan laddar bara filer från den egna domänen och alla filer finns.
 const html = readFileSync(join(root, 'index.html'), 'utf8');
 const css = readFileSync(join(root, 'css/site.css'), 'utf8');
-for (const [name, text] of [['index.html', html], ['site.css', css]]) {
-  if (/(src|href)\s*=\s*["']?(https?:)?\/\//i.test(text) || /url\(\s*["']?(https?:)?\/\//i.test(text)) fail(name + ' hänvisar till en extern adress');
-}
-for (const m of html.matchAll(/(?:src|href)="([^"#]+)"/g)) if (!existsSync(join(root, m[1]))) fail('saknad fil: ' + m[1]);
+// Externa länkar (<a href>) är tillåtna; allt som laddas (src, poster, <link>, url()) ska ligga lokalt.
+if (/\s(src|poster)\s*=\s*["']?(https?:)?\/\//i.test(html) || /<link[^>]+href\s*=\s*["']?(https?:)?\/\//i.test(html)) fail('index.html laddar något från en extern adress');
+if (/url\(\s*["']?(https?:)?\/\//i.test(css)) fail('site.css laddar något från en extern adress');
+for (const m of html.matchAll(/(?:src|href|poster)="([^"#]+)"/g)) { if (/^https?:/.test(m[1])) continue; if (!existsSync(join(root, m[1]))) fail('saknad fil: ' + m[1]); }
 for (const m of css.matchAll(/url\(([^)]+)\)/g)) if (!existsSync(join(root, 'css', m[1].replace(/["']/g, '')))) fail('saknad fil i css: ' + m[1]);
 const code = readFileSync(join(root, 'js/game.js'), 'utf8');
 if (/https?:\/\//.test(code)) fail('game.js innehåller en extern adress');

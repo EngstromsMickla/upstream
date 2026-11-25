@@ -11,8 +11,10 @@
 <body>
 <main>
 <header>
+<img src="img/planb-logotyp-natursvart.svg" alt="Plan B" class="logo">
 <h1>Upstream</h1>
 <p class="lead">Simma mot strömmen. Någonstans uppströms ligger källan.</p>
+<p class="by">Ett spel av Dan Engström för oss som jobbar på Plan B.</p>
 </header>
 
 <canvas id="c" tabindex="0" aria-label="Spelet Upstream. Styr laxen med fingret, musen eller piltangenterna. Hoppa med mellanslag."></canvas>
@@ -33,6 +35,14 @@
 <p id="pwErr" class="err" aria-live="polite"></p>
 </form>
 
+<section class="clip">
+<h2>Jag har tänkt på en grej</h2>
+<p>Ett kort klipp med Dan Engström.</p>
+<video controls playsinline preload="none" poster="media/jag-har-tankt-pa-en-grej.jpg" width="360" height="640">
+<source src="media/jag-har-tankt-pa-en-grej.mp4" type="video/mp4">
+</video>
+</section>
+
 <section class="howto">
 <h2>Så spelar du</h2>
 <ul>
@@ -46,10 +56,15 @@
 <p class="note">Ingenting sparas eller skickas. Spelet körs helt i din webbläsare.</p>
 </section>
 
+<aside class="outside">
+<h2>Jobbar du inte på Plan B ännu?</h2>
+<p>Spelet är gjort för Plan B:s medarbetare. Vill du också simma uppströms med oss? <a href="https://karriar.planbab.se/" rel="noopener">Se lediga jobb på Plan B</a>.</p>
+</aside>
+
 <footer>
 <img src="img/ormen.png" alt="Engströms Mickla AB" class="mickla">
 <img src="img/planb-symbol-natursvart.svg" alt="Plan B AB" class="planb">
-<span>Upstream v0.8 · © Plan B AB 2026 · Gjort av Engströms Mickla AB</span>
+<span>Upstream v0.9 · © Plan B AB 2026 · Gjort av Engströms Mickla AB</span>
 </footer>
 </main>
 <script src="js/game.js"></script>
