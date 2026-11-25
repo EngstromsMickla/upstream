@@ -3,22 +3,44 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Upstream</title>
-<meta name="description" content="Upstream, ett spel om att simma mot strömmen. Gjort för Plan B AB.">
+<title>Upstream | Plan B</title>
+<meta name="description" content="Upstream, ett spel om att simma mot strömmen. Av Dan Engström för Plan B:s medarbetare.">
 <link rel="icon" href="img/planb-symbol-gron.svg" type="image/svg+xml">
 <link rel="stylesheet" href="css/site.css">
 </head>
 <body>
-<main>
-<header>
-<img src="img/planb-logotyp-natursvart.svg" alt="Plan B" class="logo">
+<header class="topbar">
+<div class="wrap topbar-in">
+<a href="#start" class="brand"><img src="img/planb-logotyp-natursvart.svg" alt="Plan B" class="logo"></a>
+<nav aria-label="Sidans delar">
+<a href="#spel">Spelet</a>
+<a href="#sa-spelar-du">Så spelar du</a>
+<a href="#karriar">Karriär</a>
+</nav>
+</div>
+</header>
+
+<main id="start">
+<section class="hero">
+<div class="wrap hero-grid">
+<div class="hero-text">
 <h1>Upstream</h1>
 <p class="lead">Simma mot strömmen. Någonstans uppströms ligger källan.</p>
 <p class="by">Ett spel av Dan Engström för oss som jobbar på Plan B.</p>
-</header>
+<a href="#spel" class="btn btn-beige">Till spelet</a>
+</div>
+<div class="hero-clip">
+<p class="clip-title">Jag har tänkt på en grej.</p>
+<video controls playsinline preload="none" poster="media/jag-har-tankt-pa-en-grej.jpg" width="360" height="640" aria-label="Filmklipp: Jag har tänkt på en grej, med Dan Engström">
+<source src="media/jag-har-tankt-pa-en-grej.mp4" type="video/mp4">
+</video>
+</div>
+</div>
+</section>
 
+<section class="game" id="spel" aria-label="Spelet">
 <canvas id="c" tabindex="0" aria-label="Spelet Upstream. Styr laxen med fingret, musen eller piltangenterna. Hoppa med mellanslag."></canvas>
-
+<div class="wrap">
 <div class="controls">
 <button id="bBim" type="button"><span id="tBim">BIM-läge av</span></button>
 <button id="bSpecs" type="button"><span id="tSpecs">Specifikationer av</span></button>
@@ -28,45 +50,48 @@
 <button id="bLake" type="button" hidden>Till Källsjön</button>
 <button id="bRestart" type="button">Börja om</button>
 </div>
-
 <form id="pwForm" class="pw" autocomplete="off">
 <label for="pwIn">Har du varit vid källan? Lösenordet tar dig direkt till Källsjön.</label>
-<div class="pwrow"><input id="pwIn" type="text" maxlength="40" spellcheck="false" autocapitalize="off"><button type="submit">Simma dit</button></div>
+<div class="pwrow"><input id="pwIn" type="text" maxlength="40" spellcheck="false" autocapitalize="off"><button type="submit" class="btn btn-dark">Simma dit</button></div>
 <p id="pwErr" class="err" aria-live="polite"></p>
 </form>
-
-<section class="clip">
-<h2>Jag har tänkt på en grej</h2>
-<p>Jag har tänkt på en grej.</p>
-<video controls playsinline preload="none" poster="media/jag-har-tankt-pa-en-grej.jpg" width="360" height="640">
-<source src="media/jag-har-tankt-pa-en-grej.mp4" type="video/mp4">
-</video>
+</div>
 </section>
 
-<section class="howto">
+<section class="howto" id="sa-spelar-du">
+<div class="wrap">
 <h2>Så spelar du</h2>
-<ul>
-<li>Håll fingret eller musen på vattnet där du vill simma. Längre upp på skärmen betyder längre fram. Piltangenterna fungerar också.</li>
-<li>Släpp, så tar strömmen dig med. Nedströms går fort, men det är strömmen som bestämmer.</li>
-<li>Vila i lä bakom stenar. Där fylls orken på.</li>
-<li>Hoppa med knappen eller mellanslag: över stenar, stockar och andra fiskar, och uppför forsen. Strecket i orkmätaren visar vad ett hopp kostar.</li>
-<li>Den som når källsjön får leka fritt med hinder, ringar, slalombana och skygga badgäster. Där kostar inget ork.</li>
-<li>Spökfisken visar din bästa tur. Specifikationer och BIM-läge visar älven på andra sätt.</li>
-</ul>
+<div class="cards">
+<div class="card"><h3>Simma</h3><p>Håll fingret eller musen på vattnet där du vill simma. Längre upp på skärmen betyder längre fram. Piltangenterna fungerar också.</p></div>
+<div class="card"><h3>Glid</h3><p>Släpp, så tar strömmen dig med. Nedströms går fort, men det är strömmen som bestämmer.</p></div>
+<div class="card"><h3>Vila</h3><p>Vila i lä bakom stenar. Där fylls orken på.</p></div>
+<div class="card"><h3>Hoppa</h3><p>Hoppa med knappen eller mellanslag: över stenar, stockar och andra fiskar, och uppför forsen. Strecket i orkmätaren visar vad ett hopp kostar.</p></div>
+<div class="card"><h3>Källsjön</h3><p>Den som når källsjön får leka fritt med hinder, ringar, slalombana och skygga badgäster. Där kostar inget ork.</p></div>
+<div class="card"><h3>Mer att upptäcka</h3><p>Spökfisken visar din bästa tur. Specifikationer och BIM-läge visar älven på andra sätt.</p></div>
+</div>
 <p class="note">Ingenting sparas eller skickas. Spelet körs helt i din webbläsare.</p>
+</div>
 </section>
 
-<aside class="outside">
+<section class="outside" id="karriar">
+<div class="wrap outside-grid">
+<div>
 <h2>Jobbar du inte på Plan B ännu?</h2>
-<p>Spelet är gjort för Plan B:s medarbetare. Vill du också simma uppströms med oss? <a href="https://karriar.planbab.se/" rel="noopener">Se lediga jobb på Plan B</a>.</p>
-</aside>
+<p>Spelet är gjort för Plan B:s medarbetare. Vill du också simma uppströms med oss?</p>
+<a href="https://karriar.planbab.se/" class="btn btn-dark" rel="noopener">Se lediga jobb på Plan B</a>
+</div>
+<div class="deco" aria-hidden="true"><span class="ring"></span><span class="dots"></span></div>
+</div>
+</section>
+</main>
 
 <footer>
+<div class="wrap foot">
 <img src="img/ormen.png" alt="Engströms Mickla AB" class="mickla">
 <img src="img/planb-symbol-natursvart.svg" alt="Plan B AB" class="planb">
-<span>Upstream v0.9 · © Plan B AB 2026 · Gjort av Engströms Mickla AB</span>
+<span>Upstream v1.0 · © Plan B AB 2026 · Gjort av Engströms Mickla AB</span>
+</div>
 </footer>
-</main>
 <script src="js/game.js"></script>
 </body>
 </html>

@@ -14,7 +14,7 @@ Spelet görs på uppdrag av Plan B AB och ligger tills vidare på mickla.se. Det
 - Repot är publikt. Fråga innan något läggs in som inte tål att vara offentligt.
 
 ## Struktur
-- `site/index.html`: sidan med kort användarinstruktion och sidfot.
+- `site/index.html`: sidan, upplagd som planbab.se: vitt sidhuvud med Plan B:s logotyp och ankarlänkar, mörk hero i två kolumner (rubrik, ingress och knapp Till spelet till vänster, klippet till höger), spelet i full skärmbredd, Så spelar du som kort med tunn ram, beige karriärband med Plan B:s ring och prickar, sidfot. På mobil hamnar klippet under texten och spelet längre ned.
 - `site/js/game.js`: hela spelet (canvas, ljud syntetiseras i webbläsaren).
 - `site/css/site.css`, `site/fonts/`, `site/img/`: formgivning, typsnitt, logotyper (Plan B:s logotyp med text i sidhuvudet, symbolen i spelet och sidfoten).
 - `site/media/`: klippet ur serien Jag har tänkt på en grej (H.264, 720 px, utan metadata) och dess affischbild.

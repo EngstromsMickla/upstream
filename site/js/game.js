@@ -4,7 +4,7 @@ const C={g1:'#00826E',r1:'#F07878',l1:'#8C82E6',g2:'#1EA08C',nk:'#05232D',be:'#F
 const HF='Helvetica,Arial,sans-serif',CF='"Chakra Petch",Helvetica,Arial,sans-serif';
 try{document.fonts.load('500 14px "Chakra Petch"')}catch(e){}
 let cw=600,ch=480;
-function resize(){cw=cv.clientWidth||600;ch=Math.round(Math.min(560,Math.max(420,cw*0.95)));cv.style.height=ch+'px';const d=window.devicePixelRatio||1;cv.width=Math.round(cw*d);cv.height=Math.round(ch*d);M.setTransform(d,0,0,d,0,0);if(LREADY)layout();}
+function resize(){cw=cv.clientWidth||600;ch=Math.round(Math.max(420,Math.min(cw*0.95,(window.innerHeight||900)*0.82,760)));cv.style.height=ch+'px';const d=window.devicePixelRatio||1;cv.width=Math.round(cw*d);cv.height=Math.round(ch*d);M.setTransform(d,0,0,d,0,0);if(LREADY)layout();}
 resize();window.addEventListener('resize',resize);
 const L=4000,FH=36,FALLS=[1150,2150,3150],ISL=[800,1700,2650];
 const clamp=(v,a,b)=>v<a?a:v>b?b:v,lerp=(a,b,t)=>a+(b-a)*t;
@@ -312,7 +312,7 @@ if(state==='play'&&bim){const b=btn();g.globalAlpha=can?1:0.45;g.fillStyle=footN
 else if(state==='play'){const b=btn(),pulse=footNow&&can?1+0.08*Math.sin(T*10):1;g.globalAlpha=can?1:0.4;g.fillStyle=footNow?C.g2:C.g1;g.beginPath();g.arc(b.x,b.y,b.r*pulse,0,7);g.fill();g.strokeStyle=C.be;g.lineWidth=1.5;g.stroke();g.fillStyle=C.be;g.textAlign='center';g.font='500 15px '+CF;g.fillText('Hoppa',b.x,b.y+5);g.textAlign='left';g.globalAlpha=1}
 if(toastT>0&&state==='play'&&bim)bimToast();
 else if(toastT>0&&state==='play'){g.globalAlpha=Math.min(1,toastT*2);g.font='15px '+HF;const ls=wrap(toastTxt,W-60),w=Math.max(...ls.map(l=>g.measureText(l).width))+28,h=14+ls.length*19;rr((W-w)/2,72,w,h,8);g.fillStyle=C.nk;g.fill();g.fillStyle=C.be;g.textAlign='center';ls.forEach((l,i)=>g.fillText(l,W/2,93+i*19));g.textAlign='left';g.globalAlpha=1}
-if(!bim){g.fillStyle='rgba(5,35,45,0.7)';g.font='11px '+HF;g.textAlign='left';g.fillText('Upstream v0.9',12,H-10)}
+if(!bim){g.fillStyle='rgba(5,35,45,0.7)';g.font='11px '+HF;g.textAlign='left';g.fillText('Upstream v1.0',12,H-10)}
 if(state==='start')panel('Upstream',['Någonstans uppströms ligger källan. Ingen vet riktigt var, men det sägs att man får leka där.','Du ser laxen bakifrån. Håll fingret där du vill simma, eller använd piltangenterna. Släpp, så tar strömmen dig med. Vila i lä bakom stenar.','Kvistar, stockar och båtar kommer flytande. Väj, eller hoppa med knappen eller mellanslag.'],'Tryck för att börja');
 else if(state==='mouth')panel('Mynningen',['Varmt, lugnt och fullt av fisk som kom hit precis som du.','Längst uppströms: '+Math.max(0,Math.round((maxY-300)/2))+' m'],'Tryck för att simma igen');
 else if(state==='won'){const m=Math.floor(endT/60),sec=Math.floor(endT%60);panel('Källan',['Här börjar älven. Du knuffade till en sten, och nu rinner vattnet lite annorlunda hela vägen ner.','Tid: '+m+':'+String(sec).padStart(2,'0')],'Tryck för att simma igen')}}
