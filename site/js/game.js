@@ -14,7 +14,7 @@ const hwR=y=>Math.max(0,(118+28*Math.sin(y/260+2))*Math.min(1,(L+40-y)/320+0.2)*
 const cx=y=>y<=L?cxR(y):cxR(L);
 const hw=y=>{const r=hwR(y);if(y<L-30)return r;const dy=y-LY;return Math.max(r,Math.abs(dy)<LR?Math.sqrt(LR*LR-dy*dy):0)};
 const LY=L+300,LR=320,X0=cxR(L);
-const PW='planb4ever';let reached=false,lake=false,LK=null,LS={h:0,r:0,s:0,k:0},toastQ=[];
+const PW='planb4ever';let pwNote=false,reached=false,lake=false,LK=null,LS={h:0,r:0,s:0,k:0},toastQ=[];
 const KIDS=['Iiih!','Mamma, en fisk!','Den nuddade mig!','Pappa! Fisken!','Den är jättestor!','Den har tittat på mig!'];
 function buildLake(){const o={hurdles:[],rings:[],buoys:[],kids:[],cabin:{x:X0+262,y:LY+250}};
 for(let i=0;i<4;i++)o.hurdles.push({x:X0-40,y:LY-190+i*85,a:0,cd:0,passed:0});
@@ -24,10 +24,10 @@ for(let i=0;i<4;i++)o.kids.push({x:X0+170+Math.random()*80,y:LY-120+i*80,hx:X0+1
 return o}
 function inLake(y){return y>L-15}
 function showLakeBtn(){reached=true;const b=document.getElementById('bLake');if(b)b.hidden=false}
-function enterLake(){lake=true;LK=buildLake();endT=T;changed=true;S.chime();if(rec.length>4){ghost=rec.slice();ghostBest=1e9}showLakeBtn();toast('Källsjön! Här kostar inget ork. Lek fritt.');toastQ=['Nedströms flyttade sig några stenar. Nästa tur blir lättare.','Lösenordet till Källsjön är PlanB4ever. Det tar dig hit direkt nästa gång.','Prova hindren, ringarna och slalombanan. Badgästerna är skygga.']}
+function enterLake(){lake=true;LK=buildLake();endT=T;changed=true;S.chime();if(rec.length>4){ghost=rec.slice();ghostBest=1e9}showLakeBtn();pwNote=true;steerId=null;f.y=Math.max(f.y,L+25);f.vx=0;f.vy=0;f.air=0;f.at=0;f.z=0;toastT=0;toastQ=['Källsjön! Här kostar inget ork. Lek fritt.','Nedströms flyttade sig några stenar. Nästa tur blir lättare.','Prova hindren, ringarna och slalombanan. Badgästerna är skygga.']}
 function goLake(){changed=true;startRun();f.y=L+40;f.x=X0;camX=f.x;camY=f.y-BACK;maxY=f.y;lake=true;LK=buildLake();showLakeBtn();toast('Välkommen tillbaka till Källsjön.');toastQ=['Prova hindren, ringarna och slalombanan. Badgästerna är skygga.']}
 function lakeUpdate(dt,py){if(!LK)return;
-if(toastT<=0&&toastQ.length)toast(toastQ.shift());
+if(toastT<=0&&toastQ.length&&!pwNote)toast(toastQ.shift());
 for(const h of LK.hurdles){h.cd-=dt}
 for(const r of LK.rings){r.flash-=dt;if(f.air>0&&((py<r.y&&f.y>=r.y)||(py>r.y&&f.y<=r.y))&&Math.abs(f.x-r.x)<11&&f.z>5&&f.z<28){r.flash=1.2;LS.r++;S.ding();toast(pick(['Genom ringen!','Snyggt!','Som en delfin.']))}}
 for(let i=0;i<LK.buoys.length;i++){const b=LK.buoys[i];if(!b.lit&&((py<b.y&&f.y>=b.y)||(py>b.y&&f.y<=b.y))&&Math.sign(f.x-b.x)===b.side&&Math.abs(f.x-b.x)<70){b.lit=1;S.tick();const n=LK.buoys.filter(q=>q.lit).length;LS.s=Math.max(LS.s,n);if(n===LK.buoys.length){S.chime();toast('Slalombanan klar!');setTimeout(()=>LK&&LK.buoys.forEach(q=>q.lit=0),2500)}}}
@@ -110,7 +110,7 @@ for(let i=0;i<6;i++){const p=farPt(true);ST.push({x:p[0],y:p[1],ph:Math.random()
 function toast(t){toastTxt=t;toastT=2.2;toastTitle='Meddelande'}
 function hitToast(t,el){clashes++;if(bim){toastTxt='Element överlappar: Lax och '+el+'.';toastT=2.4;toastTitle='Varning'}else if(t)toast(t)}
 function pick(a){return a[Math.floor(Math.random()*a.length)]}
-function startRun(){lake=false;LK=null;LS={h:0,r:0,s:0,k:0};toastQ=[];rocks=buildRocks();resetFish();state='play';T=0;rec=[];recT=0;toastT=0;DB.length=0;spawnT=1.5;SU=[];surpT=4;clashes=0;if(changed&&!seen.gift){seen.gift=1;toast('Stenarna du flyttade vid källan ligger kvar.')}for(let i=0;i<PT.length;i++)PT[i]=farPt(true);}
+function startRun(){pwNote=false;lake=false;LK=null;LS={h:0,r:0,s:0,k:0};toastQ=[];rocks=buildRocks();resetFish();state='play';T=0;rec=[];recT=0;toastT=0;DB.length=0;spawnT=1.5;SU=[];surpT=4;clashes=0;if(changed&&!seen.gift){seen.gift=1;toast('Stenarna du flyttade vid källan ligger kvar.')}for(let i=0;i<PT.length;i++)PT[i]=farPt(true);}
 function endRun(k){state=k;overT=0;endT=T;steerId=null;const reached=k==='won'?1e9:maxY;if(rec.length>4&&reached>=ghostBest){ghost=rec.slice();ghostBest=reached}if(k==='won'){changed=true;S.chime()}else S.wah()}
 function footOf(y){return FALLS.find(v=>y>v-75&&y<v+2)}
 function capQ(o,hl,x,y){const ex=Math.cos(o.a)*hl,ey=Math.sin(o.a)*hl,ux=x-(o.x-ex),uy=y-(o.y-ey),u=clamp((ux*ex*2+uy*ey*2)/(4*hl*hl),0,1);return[o.x-ex+2*ex*u,o.y-ey+2*ey*u]}
@@ -138,6 +138,7 @@ if(o.tp==='moose'){o.x+=o.dir*11*dt;if(Math.abs(o.x-cx(o.y))>hw(o.y)+30&&o.t>3){
 if(!o.said&&dz<420){o.said=1;if(o.tp==='moose')S.moo();if(o.tp==='heron')toast('En häger följer dig med blicken.');if(o.tp==='duck')toast('En badanka. Varifrån kom den?')}
 if(o.tp==='canoe'){o.lt+=dt;if(dz<520&&o.lt>2.3){o.lt=0;o.li++;if(dz<350)S.chat()}}
 if(dz<-50||o.y<-200)SU.splice(i,1)}
+if(pwNote){f.tail+=dt*4;camX+=(f.x-camX)*Math.min(1,dt*3);camY+=(f.y-BACK-camY)*Math.min(1,dt*5);return}
 const tg=steerTarget();let eff=0;const py0=f.y;
 if(f.air>0){f.air-=dt;const t=clamp(1-f.air/f.airD,0,1);f.at=t;f.z=Math.sin(Math.PI*t)*f.zmax;f.x=lerp(f.ax0,f.ax1,t);f.y=lerp(f.ay0,f.ay1,t);f.tail+=dt*22;
 for(const st of ST){if(!st.passed&&Math.hypot(st.x-f.x,st.y-f.y)<14){st.passed=1;f.overs++}}
@@ -313,21 +314,22 @@ else if(state==='play'){const b=btn(),pulse=footNow&&can?1+0.08*Math.sin(T*10):1
 if(toastT>0&&state==='play'&&bim)bimToast();
 else if(toastT>0&&state==='play'){g.globalAlpha=Math.min(1,toastT*2);g.font='15px '+HF;const ls=wrap(toastTxt,W-60),w=Math.max(...ls.map(l=>g.measureText(l).width))+28,h=14+ls.length*19;rr((W-w)/2,72,w,h,8);g.fillStyle=C.nk;g.fill();g.fillStyle=C.be;g.textAlign='center';ls.forEach((l,i)=>g.fillText(l,W/2,93+i*19));g.textAlign='left';g.globalAlpha=1}
 if(!bim){g.fillStyle='rgba(5,35,45,0.7)';g.font='11px '+HF;g.textAlign='left';g.fillText('Upstream v1.0',12,H-10)}
+if(state==='play'&&pwNote)panel('PlanB4ever',['Du har hittat lösenordet till Källsjön.','Skriv det i lösenordsfältet under spelet nästa gång, så simmar du direkt hit.'],'Tryck för att stänga');
 if(state==='start')panel('Upstream',['Någonstans uppströms ligger källan. Ingen vet riktigt var, men det sägs att man får leka där.','Du ser laxen bakifrån. Håll fingret där du vill simma, eller använd piltangenterna. Släpp, så tar strömmen dig med. Vila i lä bakom stenar.','Kvistar, stockar och båtar kommer flytande. Väj, eller hoppa med knappen eller mellanslag.'],'Tryck för att börja');
 else if(state==='mouth')panel('Mynningen',['Varmt, lugnt och fullt av fisk som kom hit precis som du.','Längst uppströms: '+Math.max(0,Math.round((maxY-300)/2))+' m'],'Tryck för att simma igen');
 else if(state==='won'){const m=Math.floor(endT/60),sec=Math.floor(endT%60);panel('Källan',['Här börjar älven. Du knuffade till en sten, och nu rinner vattnet lite annorlunda hela vägen ner.','Tid: '+m+':'+String(sec).padStart(2,'0')],'Tryck för att simma igen')}}
 function render(){layout();M.save();M.translate(VX,VY);M.beginPath();M.rect(0,0,VW,VH);M.clip();g=M;setView(VW,VH);drawWorld();if(specs)drawSpecs();if(bim)viewCube();M.restore();g=M;setView(cw,ch);drawHUD()}
 function loc(e){const r=cv.getBoundingClientRect();return[e.clientX-r.left,e.clientY-r.top]}
-cv.addEventListener('pointerdown',e=>{cv.focus();ac();const[x,y]=loc(e);if(state!=='play'){if(overT>0.6)startRun();return}const b=btn();if(bim?(Math.abs(x-b.x)<38&&Math.abs(y-b.y)<22):Math.hypot(x-b.x,y-b.y)<b.r+6){tryJump();return}if(x<VX||y<VY||y>VY+VH)return;if(steerId===null){steerId=e.pointerId;px=x;py=y;try{cv.setPointerCapture(e.pointerId)}catch(_){}}});
+cv.addEventListener('pointerdown',e=>{cv.focus();ac();const[x,y]=loc(e);if(state!=='play'){if(overT>0.6)startRun();return}if(pwNote){pwNote=false;return}const b=btn();if(bim?(Math.abs(x-b.x)<38&&Math.abs(y-b.y)<22):Math.hypot(x-b.x,y-b.y)<b.r+6){tryJump();return}if(x<VX||y<VY||y>VY+VH)return;if(steerId===null){steerId=e.pointerId;px=x;py=y;try{cv.setPointerCapture(e.pointerId)}catch(_){}}});
 cv.addEventListener('pointermove',e=>{if(e.pointerId===steerId){const[x,y]=loc(e);px=x;py=y}});
 const up=e=>{if(e.pointerId===steerId)steerId=null};cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);
-cv.addEventListener('keydown',e=>{if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key))e.preventDefault();if(e.key===' '&&!e.repeat){if(state==='play')tryJump();else{ac();startRun()}return}keys[e.key]=true;if(state!=='play'&&e.key==='Enter'){ac();startRun()}});
+cv.addEventListener('keydown',e=>{if(pwNote&&[' ','Enter','Escape'].includes(e.key)){e.preventDefault();pwNote=false;return}if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key))e.preventDefault();if(e.key===' '&&!e.repeat){if(state==='play')tryJump();else{ac();startRun()}return}keys[e.key]=true;if(state!=='play'&&e.key==='Enter'){ac();startRun()}});
 cv.addEventListener('keyup',e=>{keys[e.key]=false});
 document.getElementById('bSound').onclick=()=>{snd=!snd;document.getElementById('tSound').textContent=snd?'Ljud på':'Ljud av'};
 document.getElementById('bGhost').onclick=()=>{ghostOn=!ghostOn;document.getElementById('tGhost').textContent=ghostOn?'Spökfisk på':'Spökfisk av'};
 document.getElementById('bSpecs').onclick=()=>{specs=!specs;document.getElementById('tSpecs').textContent=specs?'Specifikationer på':'Specifikationer av';cv.focus()};
 document.getElementById('bBim').onclick=()=>{bim=!bim;layout();document.getElementById('tBim').textContent=bim?'BIM-läge på':'BIM-läge av';cv.focus()};
-document.getElementById('bHome').onclick=()=>{lake=false;LK=null;toastQ=[];state='start';overT=0;steerId=null;resetFish();DB.length=0;SU=[];toastT=0;cv.focus()};
+document.getElementById('bHome').onclick=()=>{pwNote=false;lake=false;LK=null;toastQ=[];state='start';overT=0;steerId=null;resetFish();DB.length=0;SU=[];toastT=0;cv.focus()};
 document.getElementById('bLake').onclick=()=>{ac();goLake();cv.focus()};
 {const fm=document.getElementById('pwForm'),inp=document.getElementById('pwIn'),err=document.getElementById('pwErr');if(fm){fm.onsubmit=e=>{e.preventDefault();const v=String(inp.value||'').trim().toLowerCase();if(v===PW){err.textContent='';inp.value='';ac();goLake();cv.focus()}else{err.textContent=v?'Fel lösenord. Det finns vid källan.':'Skriv lösenordet först.'}};inp.oninput=()=>{err.textContent=''}}}
 document.getElementById('bRestart').onclick=()=>{ac();startRun();cv.focus()};
