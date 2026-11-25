@@ -38,6 +38,7 @@ try {
   step(1500);
   canvas.clientWidth = 360; step(600);
   els.bRestart.onclick(); step(600);
+  if (typeof els.bHome.onclick !== 'function') fail('knappen bHome saknar funktion'); else { els.bHome.onclick(); step(60); handlers.pointerdown({ pointerId: 4, clientX: 300, clientY: 300 }); step(300); }
 } catch (e) { fail('spelet kraschade: ' + (e && e.stack || e)); }
 
 if (failed) { console.error(failed + ' fel'); process.exit(1); }

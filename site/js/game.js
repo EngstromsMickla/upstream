@@ -281,6 +281,7 @@ document.getElementById('bSound').onclick=()=>{snd=!snd;document.getElementById(
 document.getElementById('bGhost').onclick=()=>{ghostOn=!ghostOn;document.getElementById('tGhost').textContent=ghostOn?'Spökfisk på':'Spökfisk av'};
 document.getElementById('bSpecs').onclick=()=>{specs=!specs;document.getElementById('tSpecs').textContent=specs?'Specifikationer på':'Specifikationer av';cv.focus()};
 document.getElementById('bBim').onclick=()=>{bim=!bim;layout();document.getElementById('tBim').textContent=bim?'BIM-läge på':'BIM-läge av';cv.focus()};
+document.getElementById('bHome').onclick=()=>{state='start';overT=0;steerId=null;resetFish();DB.length=0;SU=[];toastT=0;cv.focus()};
 document.getElementById('bRestart').onclick=()=>{ac();startRun();cv.focus()};
 let last=performance.now();
 function loop(n){if(Math.abs(cv.clientWidth-cw)>1)resize();const dt=Math.min(0.05,(n-last)/1000);last=n;update(dt);render();requestAnimationFrame(loop)}
