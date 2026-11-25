@@ -102,7 +102,7 @@ let state='start',T=0,overT=1,endT=0,f={},camX=210,camY=190,maxY=300,rec=[],recT
 const keys={},bubbles=[],PT=[],ST=[],DB=[],rings=[];let steerId=null,px=0,py=0;
 function inv(x,y){const lx=x-VX,ly=y-VY,h0=VH*0.3,F0=0.66*VH;let dz=ly>h0+3?CHT*F0/(ly-h0):900;dz=Math.min(dz,900);return[camX+(lx-VW/2)*dz/F0,camY+dz]}
 const btn=()=>({x:VX+VW-50,y:VY+VH-50,r:bim?28:36});
-function farPt(near){const dz=near?20+Math.random()*900:450+Math.random()*500,y=camY+dz,h=hw(y);return[cx(y)+(Math.random()*2-1)*h*0.95,y,0]}
+function farPt(near){for(let i=0;i<14;i++){const dz=near?20+Math.random()*900:450+Math.random()*500,y=camY+dz,h=hw(y);if(h>15)return[cx(y)+(Math.random()*2-1)*h*0.95,y,0]}const y=camY+BACK;return[cx(y)+(Math.random()*2-1)*hw(y)*0.8,y,0]}
 function resetFish(){f={x:cx(300),y:300,vx:0,vy:0,ang:Math.PI/2,stam:100,air:0,airD:1,at:0,z:0,tail:0,overs:0};camX=f.x;camY=f.y-BACK;maxY=300;}
 resetFish();
 for(let i=0;i<220;i++)PT.push(farPt(true));
@@ -126,7 +126,7 @@ f.air=f.airD;f.stam-=cost;f.ang=Math.atan2(uy,ux)}
 function update(dt){
 T+=dt;overT+=dt;if(toastT>0)toastT-=dt;
 for(let i=0;i<PT.length;i++){const p=PT[i],w=current(p[0],p[1]);p[1]+=w.vy*dt;p[2]=w.vy;const dz=p[1]-camY;if(dz<10||dz>1000||hw(p[1])<3)PT[i]=farPt(false);}
-for(const st of ST){const w=current(st.x,st.y);st.y+=w.vy*dt*0.95;st.x+=Math.sin(T*0.8+st.ph)*6*dt+(st.vx||0)*dt;st.vx=(st.vx||0)*Math.exp(-0.8*dt);rockPush(st,0,5,dt);const dz=st.y-camY;if(dz<-30||dz>1100){const p=farPt(false);st.x=p[0];st.y=p[1]}const c0=cx(st.y),h=hw(st.y);st.x=clamp(st.x,c0-h+8,c0+h-8);}
+for(const st of ST){if(inLake(st.y)){if(st.ang===undefined)st.ang=Math.random()*Math.PI*2;st.ang+=Math.sin(T*0.5+st.ph)*0.6*dt;const ox=st.x-X0,oy=st.y-LY;if(Math.hypot(ox,oy)>LR-45||st.y<L+25){let d=Math.atan2(-oy,-ox)-st.ang;d=Math.atan2(Math.sin(d),Math.cos(d));st.ang+=d*Math.min(1,1.8*dt)}st.x+=Math.cos(st.ang)*14*dt;st.y+=Math.sin(st.ang)*14*dt}else{st.ang=undefined;const w=current(st.x,st.y);st.y+=w.vy*dt*0.95;st.x+=Math.sin(T*0.8+st.ph)*6*dt+(st.vx||0)*dt;st.vx=(st.vx||0)*Math.exp(-0.8*dt);rockPush(st,0,5,dt)}const dz=st.y-camY;if(dz<-30||dz>1100||hw(st.y)<10){const p=farPt(false);st.x=p[0];st.y=p[1];st.ang=undefined}const c0=cx(st.y),h=hw(st.y);st.x=clamp(st.x,c0-h+8,c0+h-8);}
 for(let i=bubbles.length-1;i>=0;i--){const b=bubbles[i];b.t+=dt;b.z=(b.z||0)+10*dt;b.x+=Math.sin(b.t*9)*8*dt;if(b.t>1)bubbles.splice(i,1)}
 for(let i=rings.length-1;i>=0;i--){rings[i].t+=dt*1.4;if(rings[i].t>1)rings.splice(i,1)}
 if(state!=='play')return;
@@ -255,7 +255,7 @@ for(const t of TREES){const dz=t.y-camY;if(dz>20&&dz<1400)add(tree(t))}
 for(const r of rocks){const dz=r.y-camY;if(dz>-10&&dz<1250)add(rockS(r))}
 for(const fv of FALLS)add(fallS(fv));lkSprites(add);
 for(const d of DB)add(debS(d));for(const o of SU)add(suS(o));
-for(const st of ST)add(fishS(st.x,st.y,0,-Math.PI/2,T*3+st.ph,'stim',0));
+for(const st of ST)add(fishS(st.x,st.y,0,st.ang===undefined?-Math.PI/2:st.ang,T*(st.ang===undefined?3:6)+st.ph,'stim',0));
 if(ghostOn&&ghost&&state==='play'){const n=ghost.length/2,i=Math.min(n-1,Math.floor(T/0.1));add(fishS(ghost[i*2],ghost[i*2+1],0,Math.PI/2,T*12,'ghost',0))}
 for(const b of bubbles){const q=P(b.x,b.y,b.z);if(q)sp.push({d:q[3],fn:()=>{g.fillStyle='rgba(255,255,255,'+(1-b.t)+')';g.beginPath();g.arc(q[0],q[1],Math.max(0.6,1.3*q[2]),0,7);g.fill()}})}
 add(fishS(f.x,f.y,f.z,f.ang,f.tail,'me',lastEff));
